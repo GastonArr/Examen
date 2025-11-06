@@ -62,10 +62,10 @@ CREATE TABLE usuarios (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 INSERT INTO usuarios (id, apellido, nombre, dni, usuario, clave, activo, id_nivel, fecha_creacion, imagen) VALUES
-(1, 'Palacios', 'Sue', '20123456', 'sue', '$2y$12$o7VBA13ujQ4Hb9DDl/Fo8eQ92C1OLxDrqWdHcsWSurBEVWkQMjBQ.', 1, 1, '2023-10-01 10:00:00', 'sue.jpg'),
-(2, 'Ramirez', 'Carlos', '22123456', 'carlos', '$2y$12$o7VBA13ujQ4Hb9DDl/Fo8eQ92C1OLxDrqWdHcsWSurBEVWkQMjBQ.', 1, 2, '2023-10-10 11:30:00', 'profile-img.jpg'),
-(3, 'Alvarez', 'Marcos', '30111222', 'marcos', '$2y$12$o7VBA13ujQ4Hb9DDl/Fo8eQ92C1OLxDrqWdHcsWSurBEVWkQMjBQ.', 1, 3, '2023-11-05 09:15:00', 'marcos.jpg'),
-(4, 'Perez', 'Juan', '31222333', 'juan', '$2y$12$o7VBA13ujQ4Hb9DDl/Fo8eQ92C1OLxDrqWdHcsWSurBEVWkQMjBQ.', 1, 3, '2023-11-06 09:15:00', 'juan.jpg');
+(1, 'Palacios', 'Sue', '20123456', 'sue', '12345', 1, 1, '2023-10-01 10:00:00', 'sue.jpg'),
+(2, 'Ramirez', 'Carlos', '22123456', 'carlos', '12345', 1, 2, '2023-10-10 11:30:00', 'profile-img.jpg'),
+(3, 'Alvarez', 'Marcos', '30111222', 'marcos', '12345', 1, 3, '2023-11-05 09:15:00', 'marcos.jpg'),
+(4, 'Perez', 'Juan', '31222333', 'juan', '12345', 1, 3, '2023-11-06 09:15:00', 'juan.jpg');
 
 CREATE TABLE transportes (
   id INT NOT NULL AUTO_INCREMENT,

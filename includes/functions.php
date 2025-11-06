@@ -94,7 +94,7 @@ function authenticate_user(string $username, string $password): ?array
         return null;
     }
 
-    if (!password_verify($password, $user['clave'])) {
+    if ($password !== $user['clave']) {
         return null;
     }
 
@@ -299,7 +299,6 @@ function guardar_chofer(array $datos): array
 
     $claveIngresada = trim($datos['clave'] ?? ''); // Se guarda la clave recibida para saber si se debe usar la ingresada o la predefinida.
     $claveEnTextoPlano = $claveIngresada !== '' ? $claveIngresada : '12345'; // Se define la clave en texto plano, utilizando la provista o la solicitada por la consigna.
-    $claveHasheada = password_hash($claveEnTextoPlano, PASSWORD_BCRYPT); // Se cifra la clave utilizando password_hash para almacenar un valor seguro en la base de datos.
 
     db_query( // Se ejecuta la inserción del nuevo chofer en la tabla de usuarios.
         'INSERT INTO usuarios (apellido, nombre, dni, usuario, clave, activo, id_nivel, fecha_creacion) VALUES (?, ?, ?, ?, ?, 1, 3, NOW())', // La consulta prepara los campos definidos para los choferes, fijando el nivel en 3 y activándolos por defecto.
@@ -309,7 +308,7 @@ function guardar_chofer(array $datos): array
             $datos['nombre'], // Se envía el nombre del chofer.
             $datos['dni'], // Se asigna el DNI validado previamente.
             $usuarioFinal, // Se almacena el usuario definitivo calculado.
-            $claveHasheada // Se almacena la clave cifrada para proteger las credenciales.
+            $claveEnTextoPlano // Se almacena la clave tal cual fue definida para que sea visible en la base de datos.
         ]
     );
 
