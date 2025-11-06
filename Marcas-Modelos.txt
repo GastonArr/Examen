@@ -1,0 +1,12 @@
+Marcas y Modelos de Transportes: (para armar el set de datos)
+Iveco	Daily Furgon / Daily Chasis
+	Fuente: https://www.iveco.com/argentina/pages/home-page.aspx#
+
+Volvo	Volvo FH / Volvo FM
+	Fuente: https://www.volvotrucks.com.ar/es-ar/
+
+Scania: Serie P / Serie G
+	Fuente: https://www.scania.com/ar/es/home/products/trucks.html
+
+Volkswagen:  Delivery / Meteor
+	Fuente: https://vwcamionesybuses.com.ar/
