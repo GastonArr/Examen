@@ -4,6 +4,10 @@ require_login();
 
 $pageTitle = 'Panel de Administración';
 $activePage = 'dashboard';
+$user = current_user();
+$userFullName = user_full_name($user);
+$userDenominacion = nivel_denominacion($user['id_nivel'] ?? null);
+$funcionesPermitidas = descripcion_funciones_por_nivel($user['id_nivel'] ?? null);
 
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/topbar.php';
@@ -24,8 +28,8 @@ require_once __DIR__ . '/includes/sidebar.php';
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Hola, <?php echo htmlspecialchars(user_full_name(current_user())); ?>!</h5>
-                        <p class="card-text">Desde este panel podrás gestionar los choferes, registrar viajes y consultar los datos registrados según tu nivel de acceso.</p>
+                        <h5 class="card-title">Hola, <?php echo htmlspecialchars($userFullName); ?> (<?php echo htmlspecialchars($userDenominacion); ?>)!</h5>
+                        <p class="card-text">Desde este panel podrás gestionar la operación diaria del sistema. Según tu función, podrás gestionar: <?php echo htmlspecialchars($funcionesPermitidas); ?>.</p>
                     </div>
                 </div>
             </div>

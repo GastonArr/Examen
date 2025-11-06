@@ -169,6 +169,20 @@ function nivel_denominacion(?int $id): string
     }
 }
 
+function descripcion_funciones_por_nivel(?int $id): string
+{
+    switch ($id) {
+        case 1:
+            return 'transportes, choferes y viajes';
+        case 2:
+            return 'transportes y viajes';
+        case 3:
+            return 'el seguimiento de los viajes asignados';
+        default:
+            return 'la información disponible en el panel';
+    }
+}
+
 function format_date_spanish(?string $date): string
 {
     if (!$date) {
