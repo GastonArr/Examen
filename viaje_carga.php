@@ -102,7 +102,11 @@ require_once __DIR__ . '/includes/sidebar.php';
                         <?php if ($errors): ?>
                             <div class="alert alert-warning" role="alert">
                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                <?php echo implode('<br>', array_map('htmlspecialchars', $errors)); ?>
+                                <ul class="mb-0">
+                                    <?php foreach ($errors as $error): ?>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
                             </div>
                         <?php endif; ?>
                         <?php if ($success): ?>
@@ -110,7 +114,7 @@ require_once __DIR__ . '/includes/sidebar.php';
                                 <i class="bi bi-check-circle me-1"></i> ¡El viaje se registró correctamente!
                             </div>
                         <?php endif; ?>
-                        <form class="row g-3" method="post" action="">
+                        <form class="row g-3" method="post" action="" novalidate>
                             <div class="col-12">
                                 <label for="chofer_id" class="form-label">Chofer (*)</label>
                                 <select class="form-select" id="chofer_id" name="chofer_id" required>

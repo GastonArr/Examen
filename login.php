@@ -56,15 +56,18 @@ require_once __DIR__ . '/includes/header.php';
                                 </div>
                                 <div class="alert alert-info" role="alert">
                                     <i class="bi bi-info-circle me-1"></i> Los campos indicados con (*) son requeridos
-                                    <?php if ($errors): ?>
-                                        <ul class="mb-0 mt-2 text-danger">
+                                </div>
+                                <?php if ($errors): ?>
+                                    <div class="alert alert-warning" role="alert">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        <ul class="mb-0">
                                             <?php foreach ($errors as $error): ?>
                                                 <li><?php echo htmlspecialchars($error); ?></li>
                                             <?php endforeach; ?>
                                         </ul>
-                                    <?php endif; ?>
-                                </div>
-                                <form class="row g-3" method="post" action="">
+                                    </div>
+                                <?php endif; ?>
+                                <form class="row g-3" method="post" action="" novalidate>
                                     <div class="col-12">
                                         <label for="usuario" class="form-label">Usuario (*)</label>
                                         <div class="input-group has-validation">

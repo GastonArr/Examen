@@ -101,7 +101,11 @@ require_once __DIR__ . '/includes/sidebar.php'; // Se incluye el menú lateral q
                         <?php if ($errors): // Se muestran las alertas solo cuando existen errores de validación. ?>
                             <div class="alert alert-warning" role="alert">
                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                <?php echo implode('<br>', array_map('htmlspecialchars', $errors)); // Se listan los mensajes sanitizados para evitar inyecciones de HTML. ?>
+                                <ul class="mb-0">
+                                    <?php foreach ($errors as $error): ?>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
                             </div>
                         <?php endif; ?>
                         <?php if ($success): // Se muestra el mensaje de confirmación cuando el guardado fue exitoso. ?>
@@ -109,7 +113,7 @@ require_once __DIR__ . '/includes/sidebar.php'; // Se incluye el menú lateral q
                                 <i class="bi bi-check-circle me-1"></i> ¡El transporte se registró correctamente!
                             </div>
                         <?php endif; ?>
-                        <form class="row g-3" method="post" action="">
+                        <form class="row g-3" method="post" action="" novalidate>
                             <div class="col-12">
                                 <label for="marca_id" class="form-label">Marca (*)</label>
                                 <select class="form-select" id="marca_id" name="marca_id" required>
