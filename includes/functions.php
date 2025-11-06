@@ -303,16 +303,10 @@ function generar_usuario_unico(string $base): string
 
 function guardar_chofer(array $datos): array
 {
-    $usuarioIngresado = trim($datos['usuario'] ?? ''); // Se almacena el usuario ingresado para analizar si se debe generar uno nuevo automáticamente.
-    $usuarioBase = $usuarioIngresado !== '' ? strtolower($usuarioIngresado) : generar_usuario_por_defecto($datos['apellido'], $datos['nombre']); // Se determina la base del usuario: se usa el valor provisto o se genera desde el nombre y apellido.
-    $usuarioNormalizado = preg_replace('/[^a-z0-9._-]/', '', $usuarioBase); // Se limpian caracteres no permitidos para cumplir con el formato requerido por el login.
-    if ($usuarioNormalizado === '') { // Se valida que tras la limpieza exista contenido en el usuario.
-        $usuarioNormalizado = 'usuario'; // Se establece una palabra base en caso de que el usuario haya quedado vacío.
-    }
-    $usuarioFinal = generar_usuario_unico($usuarioNormalizado); // Se obtiene un usuario único verificando que no exista previamente en la tabla.
+    $usuarioNormalizado = strtolower(trim($datos['usuario'] ?? '')); // Se normaliza el usuario a minúsculas para mantener consistencia con el login.
+    $usuarioNormalizado = preg_replace('/[^a-z0-9._-]/', '', $usuarioNormalizado); // Se eliminan caracteres no permitidos para garantizar el formato esperado.
 
-    $claveIngresada = trim($datos['clave'] ?? ''); // Se guarda la clave recibida para saber si se debe usar la ingresada o la predefinida.
-    $claveEnTextoPlano = $claveIngresada !== '' ? $claveIngresada : '12345'; // Se define la clave en texto plano, utilizando la provista o la solicitada por la consigna.
+    $claveEnTextoPlano = trim($datos['clave'] ?? ''); // Se conserva la clave validada desde el formulario.
 
     db_query( // Se ejecuta la inserción del nuevo chofer en la tabla de usuarios.
         'INSERT INTO usuarios (apellido, nombre, dni, usuario, clave, activo, id_nivel, fecha_creacion) VALUES (?, ?, ?, ?, ?, 1, 3, NOW())', // La consulta prepara los campos definidos para los choferes, fijando el nivel en 3 y activándolos por defecto.
@@ -321,14 +315,14 @@ function guardar_chofer(array $datos): array
             $datos['apellido'], // Se envía el apellido proporcionado en el formulario.
             $datos['nombre'], // Se envía el nombre del chofer.
             $datos['dni'], // Se asigna el DNI validado previamente.
-            $usuarioFinal, // Se almacena el usuario definitivo calculado.
+            $usuarioNormalizado, // Se almacena el usuario validado y normalizado.
             $claveEnTextoPlano // Se almacena la clave tal cual fue definida para que sea visible en la base de datos.
         ]
     );
 
     return [ // Se devuelven datos útiles del nuevo registro para mostrar mensajes informativos en pantalla.
         'id' => db_connect()->insert_id, // Se entrega el identificador generado automáticamente para el chofer.
-        'usuario' => $usuarioFinal, // Se informa el usuario final que deberá utilizar para ingresar al sistema.
+        'usuario' => $usuarioNormalizado, // Se informa el usuario final que deberá utilizar para ingresar al sistema.
         'clave' => $claveEnTextoPlano // Se entrega la clave en texto plano para recordarla al usuario administrador.
     ];
 }

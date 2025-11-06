@@ -16,13 +16,14 @@ $apellido = '';
 $nombre = '';
 $dni = '';
 $usuarioForm = '';
+$claveForm = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $apellido = trim($_POST['apellido'] ?? '');
     $nombre = trim($_POST['nombre'] ?? '');
     $dni = trim($_POST['dni'] ?? '');
-    $usuarioForm = trim($_POST['usuario'] ?? '');
-    $clave = trim($_POST['clave'] ?? '');
+    $usuarioForm = strtolower(trim($_POST['usuario'] ?? ''));
+    $claveForm = trim($_POST['clave'] ?? '');
 
     if (!campo_requerido($apellido)) {
         $errors[] = 'El apellido es obligatorio.';
@@ -40,19 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'El DNI ingresado ya se encuentra registrado.';
     }
 
-    if ($usuarioForm !== '') { // Se valida el usuario solo si fue proporcionado, porque puede omitirse según la consigna.
-        $usuarioValidado = strtolower($usuarioForm); // Se convierte a minúsculas para comparar y guardar siguiendo el formato del login.
-        if (!preg_match('/^[a-z0-9._-]{3,}$/', $usuarioValidado)) { // Se controla que el formato contenga únicamente caracteres válidos y un largo mínimo.
-            $errors[] = 'El usuario debe tener al menos 3 caracteres y solo puede incluir letras, números, puntos, guiones o guiones bajos.'; // Se agrega un mensaje descriptivo cuando el formato no es correcto.
-        } elseif (usuario_existe($usuarioValidado)) { // Se consulta la base de datos para evitar duplicados en el nombre de usuario.
-            $errors[] = 'El usuario ingresado ya existe.'; // Se notifica que el usuario elegido no está disponible.
-        } else {
-            $usuarioForm = $usuarioValidado; // Se conserva el usuario normalizado para reutilizarlo al guardar.
-        }
+    if (!campo_requerido($usuarioForm)) {
+        $errors[] = 'El usuario es obligatorio.';
+    } elseif (!preg_match('/^[a-z0-9._-]{3,}$/', $usuarioForm)) {
+        $errors[] = 'El usuario debe tener al menos 3 caracteres y solo puede incluir letras, números, puntos, guiones o guiones bajos.';
+    } elseif (usuario_existe($usuarioForm)) {
+        $errors[] = 'El usuario ingresado ya existe.';
     }
 
-    if ($clave !== '' && $clave !== '12345') { // Se valida que la clave ingresada cumpla con el valor solicitado para facilitar las pruebas del login.
-        $errors[] = 'La clave permitida para los choferes debe ser 12345.'; // Se informa al usuario administrador cuál es la clave válida.
+    if (!campo_requerido($claveForm)) {
+        $errors[] = 'La clave es obligatoria.';
+    } elseif (!preg_match('/^[A-Za-z0-9]{5,}$/', $claveForm)) {
+        $errors[] = 'La clave debe tener al menos 5 caracteres y solo puede contener letras o números.';
     }
 
     if (!$errors) {
@@ -60,12 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'apellido' => $apellido, // Se envía el apellido ya validado.
             'nombre' => $nombre, // Se envía el nombre proporcionado.
             'dni' => $dni, // Se envía el DNI confirmado como único.
-            'usuario' => $usuarioForm, // Se envía el usuario (que puede estar vacío para generar uno automático).
-            'clave' => $clave, // Se envía la clave opcional (o vacía) para que la función la normalice.
+            'usuario' => $usuarioForm, // Se envía el usuario validado.
+            'clave' => $claveForm, // Se envía la clave validada.
         ]);
         $success = true; // Se marca el registro como exitoso para mostrar el mensaje correspondiente.
         $successData = $resultado; // Se almacenan los datos retornados (usuario y clave final) para comunicarlos al administrador.
-        $apellido = $nombre = $dni = $usuarioForm = '';
+        $apellido = $nombre = $dni = $usuarioForm = $claveForm = '';
     }
 }
 
@@ -92,16 +92,17 @@ require_once __DIR__ . '/includes/sidebar.php';
                         <h5 class="card-title">Ingresa los datos</h5>
                         <div class="alert alert-info" role="alert">
                             <i class="bi bi-info-circle me-1"></i> Los campos indicados con (*) son requeridos
+                            <?php if ($errors): ?>
+                                <ul class="mb-0 mt-2 text-danger">
+                                    <?php foreach ($errors as $error): ?>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
                         </div>
-                        <?php if ($errors): ?>
-                            <div class="alert alert-warning" role="alert">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                <?php echo implode('<br>', array_map('htmlspecialchars', $errors)); ?>
-                            </div>
-                        <?php endif; ?>
                         <?php if ($success): ?>
                             <div class="alert alert-success" role="alert">
-                                <i class="bi bi-check-circle me-1"></i> ¡Los datos se guardaron correctamente! <?php if ($successData): ?>Usuario generado: <strong><?php echo htmlspecialchars($successData['usuario']); ?></strong> - Clave: <strong><?php echo htmlspecialchars($successData['clave']); ?></strong><?php endif; ?>
+                                <i class="bi bi-check-circle me-1"></i> ¡Los datos se guardaron correctamente! <?php if ($successData): ?>Usuario registrado: <strong><?php echo htmlspecialchars($successData['usuario']); ?></strong> - Clave: <strong><?php echo htmlspecialchars($successData['clave']); ?></strong><?php endif; ?>
                             </div>
                         <?php endif; ?>
                         <form class="row g-3" method="post" action="">
@@ -118,14 +119,12 @@ require_once __DIR__ . '/includes/sidebar.php';
                                 <input type="text" class="form-control" id="dni" name="dni" value="<?php echo htmlspecialchars($dni); ?>" required>
                             </div>
                             <div class="col-12">
-                                <label for="usuario" class="form-label">Usuario</label>
-                                <input type="text" class="form-control" id="usuario" name="usuario" value="<?php echo htmlspecialchars($usuarioForm); ?>">
-                                <div class="form-text">Si lo dejas vacío el sistema generará el usuario automáticamente.</div>
+                                <label for="usuario" class="form-label">Usuario (*)</label>
+                                <input type="text" class="form-control" id="usuario" name="usuario" value="<?php echo htmlspecialchars($usuarioForm); ?>" required>
                             </div>
                             <div class="col-12">
-                                <label for="clave" class="form-label">Clave</label>
-                                <input type="password" class="form-control" id="clave" name="clave">
-                                <div class="form-text">Si se deja vacío se asignará la clave 12345 requerida para las pruebas.</div>
+                                <label for="clave" class="form-label">Clave (*)</label>
+                                <input type="password" class="form-control" id="clave" name="clave" required>
                             </div>
                             <div class="text-center">
                                 <button class="btn btn-primary" type="submit">Registrar</button>
