@@ -5,7 +5,8 @@ require_login();
 $pageTitle = 'Listado de viajes registrados';
 $activePage = 'viajes_listado';
 
-$viajes = obtener_viajes();
+$choferFiltradoId = es_chofer() ? (current_user()['id'] ?? null) : null; // Se determina si es necesario filtrar los viajes por el chofer autenticado.
+$viajes = obtener_viajes($choferFiltradoId); // Se obtienen los viajes aplicando el filtro según el nivel del usuario.
 $mostrarCosto = !es_chofer();
 $mostrarMontoChofer = !es_operador();
 $mostrarPorcentajeEnMonto = !es_chofer();

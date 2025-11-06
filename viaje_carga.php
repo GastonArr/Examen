@@ -2,18 +2,23 @@
 require_once __DIR__ . '/includes/functions.php';
 require_login();
 
+if (es_chofer()) { // Se impide que los choferes accedan a la carga de viajes según los permisos definidos.
+    redirect('viajes_listado.php'); // Se redirige al listado para que solo vean sus propios viajes.
+}
+
 $pageTitle = 'Registrar un nuevo viaje';
 $activePage = 'viaje_carga';
 
 $choferes = obtener_choferes();
 $transportes = obtener_transportes();
+$destinos = obtener_destinos(); // Se obtiene el listado de destinos para completar el selector correspondiente.
 
 $errors = [];
 $success = false;
 $choferId = '';
 $transporteId = '';
 $fechaProgramada = '';
-$destino = '';
+$destinoId = ''; // Se guarda el destino seleccionado utilizando su identificador para validar y repoblar el formulario.
 $costo = '';
 $porcentaje = '';
 
@@ -21,15 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $choferId = $_POST['chofer_id'] ?? '';
     $transporteId = $_POST['transporte_id'] ?? '';
     $fechaProgramada = $_POST['fecha_programada'] ?? '';
-    $destino = trim($_POST['destino'] ?? '');
+    $destinoId = $_POST['destino_id'] ?? ''; // Se captura el destino elegido en el formulario.
     $costo = $_POST['costo'] ?? '';
     $porcentaje = $_POST['porcentaje_chofer'] ?? '';
 
-    if (!$choferId || !in_array((string) $choferId, array_column($choferes, 'id'), true)) {
+    $choferesValidos = array_column($choferes, 'id'); // Se obtiene la lista de identificadores de choferes habilitados.
+    if (!$choferId || !in_array((string) $choferId, array_map('strval', $choferesValidos), true)) { // Se valida que el chofer seleccionado exista y esté activo.
         $errors[] = 'Debes seleccionar un chofer válido.';
     }
 
-    if (!$transporteId || !in_array((string) $transporteId, array_column($transportes, 'id'), true)) {
+    $transportesValidos = array_column($transportes, 'id'); // Se obtiene la lista de transportes disponibles para validar la selección.
+    if (!$transporteId || !in_array((string) $transporteId, array_map('strval', $transportesValidos), true)) { // Se comprueba que el transporte elegido sea válido y esté habilitado.
         $errors[] = 'Debes seleccionar un transporte válido.';
     }
 
@@ -38,8 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Debes ingresar una fecha programada válida.';
     }
 
-    if (!campo_requerido($destino)) {
-        $errors[] = 'El destino es obligatorio.';
+    $destinosValidos = array_column($destinos, 'id'); // Se arma un listado de identificadores válidos para controlar la selección.
+    if (!$destinoId || !in_array((string) $destinoId, array_map('strval', $destinosValidos), true)) { // Se valida que el destino exista en la base de datos.
+        $errors[] = 'Debes seleccionar un destino válido.'; // Se notifica si la selección no es correcta.
     }
 
     $importeNormalizado = normalizar_importe((string) $costo);
@@ -56,13 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'chofer_id' => (int) $choferId,
             'transporte_id' => (int) $transporteId,
             'fecha_programada' => $fechaNormalizada,
-            'destino' => $destino,
+            'destino_id' => (int) $destinoId, // Se envía el identificador del destino validado.
             'costo' => (float) $importeNormalizado,
             'porcentaje_chofer' => (int) $porcentaje,
             'creado_por' => current_user()['id'] ?? null,
         ]);
         $success = true;
-        $choferId = $transporteId = $fechaProgramada = $destino = $costo = $porcentaje = '';
+        $choferId = $transporteId = $fechaProgramada = $destinoId = $costo = $porcentaje = ''; // Se limpian los campos para permitir cargar un nuevo viaje inmediatamente.
         $fechaNormalizada = null;
     }
 }
@@ -130,8 +138,13 @@ require_once __DIR__ . '/includes/sidebar.php';
                                 <input type="text" class="form-control" id="fecha_programada" name="fecha_programada" placeholder="dd/mm/aaaa" value="<?php echo htmlspecialchars($fechaProgramada); ?>" required>
                             </div>
                             <div class="col-12">
-                                <label for="destino" class="form-label">Destino (*)</label>
-                                <input type="text" class="form-control" id="destino" name="destino" value="<?php echo htmlspecialchars($destino); ?>" required>
+                                <label for="destino_id" class="form-label">Destino (*)</label>
+                                <select class="form-select" id="destino_id" name="destino_id" required>
+                                    <option value="">Selecciona una opción</option>
+                                    <?php foreach ($destinos as $destino): // Se recorre el listado de destinos para generar las opciones disponibles. ?>
+                                        <option value="<?php echo htmlspecialchars($destino['id']); ?>" <?php echo (string) $destino['id'] === (string) $destinoId ? 'selected' : ''; ?>><?php echo htmlspecialchars($destino['denominacion']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="col-6">
                                 <label for="costo" class="form-label">Costo (*)</label>
