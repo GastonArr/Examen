@@ -157,12 +157,16 @@ function es_chofer(): bool
 
 function nivel_denominacion(?int $id): string
 {
-    return match ($id) {
-        1 => 'Administrador',
-        2 => 'Operador',
-        3 => 'Chofer',
-        default => 'Usuario',
-    };
+    switch ($id) {
+        case 1:
+            return 'Administrador';
+        case 2:
+            return 'Operador';
+        case 3:
+            return 'Chofer';
+        default:
+            return 'Usuario';
+    }
 }
 
 function format_date_spanish(?string $date): string
