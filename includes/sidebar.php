@@ -1,6 +1,22 @@
 <?php
 require_once __DIR__ . '/functions.php';
-$currentPage = $activePage ?? '';
+$currentPage = $activePage ?? ''; // Se obtiene la página actual para asignar estilos activos en el menú.
+$esAdminActual = es_admin(); // Se determina si el usuario autenticado es administrador.
+$esOperadorActual = es_operador(); // Se verifica si el usuario pertenece al nivel de operadores.
+
+$mostrarTransportes = $esAdminActual || $esOperadorActual; // Se habilita el menú de transportes para administradores y operadores.
+$mostrarChoferes = $esAdminActual; // Solo los administradores pueden cargar choferes.
+$mostrarCargaViajes = $esAdminActual || $esOperadorActual; // Administradores y operadores pueden crear viajes.
+$transportNavPages = array_filter([ // Se arma el arreglo de páginas que pertenecen al grupo Transportes para controlar el despliegue.
+    $mostrarTransportes ? 'camion_carga' : null, // Se incluye la carga de camiones si el usuario tiene permiso.
+    $mostrarChoferes ? 'choferes' : null, // Se incluye la carga de choferes únicamente para administradores.
+]);
+$viajesNavPages = array_filter([ // Se arma el arreglo de páginas correspondientes al grupo Viajes.
+    $mostrarCargaViajes ? 'viaje_carga' : null, // Se incluye la carga de viajes según los permisos.
+    'viajes_listado', // Siempre se incluye el listado porque todos los niveles pueden verlo.
+]);
+$transportNavAbierto = in_array($currentPage, $transportNavPages, true); // Se determina si el submenú de transportes debe mostrarse expandido.
+$viajesNavAbierto = in_array($currentPage, $viajesNavPages, true); // Se evalúa si el submenú de viajes debe mostrarse expandido.
 ?>
 <aside id="sidebar" class="sidebar">
     <ul class="sidebar-nav" id="sidebar-nav">
@@ -11,29 +27,42 @@ $currentPage = $activePage ?? '';
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link" data-bs-target="#transportes-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-truck"></i><span>Transportes</span><i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="transportes-nav" class="nav-content collapse <?php echo in_array($currentPage, ['choferes'], true) ? 'show' : ''; ?>" data-bs-parent="#sidebar-nav">
-                <li>
-                    <a href="chofer_carga.php" class="<?php echo $currentPage === 'choferes' ? 'active' : ''; ?>">
-                        <i class="bi bi-file-earmark-plus"></i><span>Cargar nuevo chofer</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
+        <?php if ($mostrarTransportes || $mostrarChoferes): // Se muestra el bloque de transportes solo si el usuario tiene permiso. ?>
+            <li class="nav-item">
+                <a class="nav-link <?php echo $transportNavAbierto ? '' : 'collapsed'; ?>" data-bs-target="#transportes-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-truck"></i><span>Transportes</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="transportes-nav" class="nav-content collapse <?php echo $transportNavAbierto ? 'show' : ''; ?>" data-bs-parent="#sidebar-nav">
+                    <?php if ($mostrarTransportes): // Se agrega la opción de cargar transportes para administradores y operadores. ?>
+                        <li>
+                            <a href="camion_carga.php" class="<?php echo $currentPage === 'camion_carga' ? 'active' : ''; ?>">
+                                <i class="bi bi-file-earmark-plus"></i><span>Cargar nuevo transporte</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if ($mostrarChoferes): // Se agrega la opción de cargar choferes únicamente a los administradores. ?>
+                        <li>
+                            <a href="chofer_carga.php" class="<?php echo $currentPage === 'choferes' ? 'active' : ''; ?>">
+                                <i class="bi bi-person-plus"></i><span>Cargar nuevo chofer</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </li>
+        <?php endif; ?>
 
         <li class="nav-item">
-            <a class="nav-link" data-bs-target="#viajes-nav" data-bs-toggle="collapse" href="#">
+            <a class="nav-link <?php echo $viajesNavAbierto ? '' : 'collapsed'; ?>" data-bs-target="#viajes-nav" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-globe2"></i><span>Viajes</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="viajes-nav" class="nav-content collapse <?php echo in_array($currentPage, ['viaje_carga', 'viajes_listado'], true) ? 'show' : ''; ?>" data-bs-parent="#sidebar-nav">
-                <li>
-                    <a href="viaje_carga.php" class="<?php echo $currentPage === 'viaje_carga' ? 'active' : ''; ?>">
-                        <i class="bi bi-file-earmark-plus"></i><span>Cargar nuevo</span>
-                    </a>
-                </li>
+            <ul id="viajes-nav" class="nav-content collapse <?php echo $viajesNavAbierto ? 'show' : ''; ?>" data-bs-parent="#sidebar-nav">
+                <?php if ($mostrarCargaViajes): // Se muestra el enlace de carga de viajes para administradores y operadores. ?>
+                    <li>
+                        <a href="viaje_carga.php" class="<?php echo $currentPage === 'viaje_carga' ? 'active' : ''; ?>">
+                            <i class="bi bi-file-earmark-plus"></i><span>Cargar nuevo</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
                 <li>
                     <a href="viajes_listado.php" class="<?php echo $currentPage === 'viajes_listado' ? 'active' : ''; ?>">
                         <i class="bi bi-layout-text-window-reverse"></i><span>Listado de viajes</span>

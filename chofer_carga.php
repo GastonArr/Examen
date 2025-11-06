@@ -2,11 +2,16 @@
 require_once __DIR__ . '/includes/functions.php';
 require_login();
 
+if (!es_admin()) { // Se verifica que solamente los administradores puedan cargar nuevos choferes, respetando los niveles de acceso.
+    redirect('index.php'); // Si el usuario no es administrador se lo redirige al panel principal para impedir el acceso.
+}
+
 $pageTitle = 'Registrar un nuevo chofer';
 $activePage = 'choferes';
 
 $errors = [];
 $success = false;
+$successData = null; // Se inicializa la variable que almacenará los datos del registro exitoso para mostrarlos en pantalla.
 $apellido = '';
 $nombre = '';
 $dni = '';
@@ -35,27 +40,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'El DNI ingresado ya se encuentra registrado.';
     }
 
-    if (!campo_requerido($usuarioForm)) {
-        $errors[] = 'El usuario es obligatorio.';
-    } elseif (usuario_existe($usuarioForm)) {
-        $errors[] = 'El usuario ingresado ya existe.';
+    if ($usuarioForm !== '') { // Se valida el usuario solo si fue proporcionado, porque puede omitirse según la consigna.
+        $usuarioValidado = strtolower($usuarioForm); // Se convierte a minúsculas para comparar y guardar siguiendo el formato del login.
+        if (!preg_match('/^[a-z0-9._-]{3,}$/', $usuarioValidado)) { // Se controla que el formato contenga únicamente caracteres válidos y un largo mínimo.
+            $errors[] = 'El usuario debe tener al menos 3 caracteres y solo puede incluir letras, números, puntos, guiones o guiones bajos.'; // Se agrega un mensaje descriptivo cuando el formato no es correcto.
+        } elseif (usuario_existe($usuarioValidado)) { // Se consulta la base de datos para evitar duplicados en el nombre de usuario.
+            $errors[] = 'El usuario ingresado ya existe.'; // Se notifica que el usuario elegido no está disponible.
+        } else {
+            $usuarioForm = $usuarioValidado; // Se conserva el usuario normalizado para reutilizarlo al guardar.
+        }
     }
 
-    if (!campo_requerido($clave)) {
-        $errors[] = 'La clave es obligatoria.';
-    } elseif (strlen($clave) < 6) {
-        $errors[] = 'La clave debe tener al menos 6 caracteres.';
+    if ($clave !== '' && $clave !== '12345') { // Se valida que la clave ingresada cumpla con el valor solicitado para facilitar las pruebas del login.
+        $errors[] = 'La clave permitida para los choferes debe ser 12345.'; // Se informa al usuario administrador cuál es la clave válida.
     }
 
     if (!$errors) {
-        guardar_chofer([
-            'apellido' => $apellido,
-            'nombre' => $nombre,
-            'dni' => $dni,
-            'usuario' => $usuarioForm,
-            'clave' => $clave,
+        $resultado = guardar_chofer([ // Se llama a la función que inserta el chofer y devuelve información complementaria.
+            'apellido' => $apellido, // Se envía el apellido ya validado.
+            'nombre' => $nombre, // Se envía el nombre proporcionado.
+            'dni' => $dni, // Se envía el DNI confirmado como único.
+            'usuario' => $usuarioForm, // Se envía el usuario (que puede estar vacío para generar uno automático).
+            'clave' => $clave, // Se envía la clave opcional (o vacía) para que la función la normalice.
         ]);
-        $success = true;
+        $success = true; // Se marca el registro como exitoso para mostrar el mensaje correspondiente.
+        $successData = $resultado; // Se almacenan los datos retornados (usuario y clave final) para comunicarlos al administrador.
         $apellido = $nombre = $dni = $usuarioForm = '';
     }
 }
@@ -92,7 +101,7 @@ require_once __DIR__ . '/includes/sidebar.php';
                         <?php endif; ?>
                         <?php if ($success): ?>
                             <div class="alert alert-success" role="alert">
-                                <i class="bi bi-check-circle me-1"></i> ¡Los datos se guardaron correctamente!
+                                <i class="bi bi-check-circle me-1"></i> ¡Los datos se guardaron correctamente! <?php if ($successData): ?>Usuario generado: <strong><?php echo htmlspecialchars($successData['usuario']); ?></strong> - Clave: <strong><?php echo htmlspecialchars($successData['clave']); ?></strong><?php endif; ?>
                             </div>
                         <?php endif; ?>
                         <form class="row g-3" method="post" action="">
@@ -109,13 +118,14 @@ require_once __DIR__ . '/includes/sidebar.php';
                                 <input type="text" class="form-control" id="dni" name="dni" value="<?php echo htmlspecialchars($dni); ?>" required>
                             </div>
                             <div class="col-12">
-                                <label for="usuario" class="form-label">Usuario (*)</label>
-                                <input type="text" class="form-control" id="usuario" name="usuario" value="<?php echo htmlspecialchars($usuarioForm); ?>" required>
+                                <label for="usuario" class="form-label">Usuario</label>
+                                <input type="text" class="form-control" id="usuario" name="usuario" value="<?php echo htmlspecialchars($usuarioForm); ?>">
+                                <div class="form-text">Si lo dejas vacío el sistema generará el usuario automáticamente.</div>
                             </div>
                             <div class="col-12">
-                                <label for="clave" class="form-label">Clave (*)</label>
-                                <input type="password" class="form-control" id="clave" name="clave" required>
-                                <div class="form-text">Debe contener al menos 6 caracteres.</div>
+                                <label for="clave" class="form-label">Clave</label>
+                                <input type="password" class="form-control" id="clave" name="clave">
+                                <div class="form-text">Si se deja vacío se asignará la clave 12345 requerida para las pruebas.</div>
                             </div>
                             <div class="text-center">
                                 <button class="btn btn-primary" type="submit">Registrar</button>
