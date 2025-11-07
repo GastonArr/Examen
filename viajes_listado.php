@@ -1,15 +1,15 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-require_login();
+RequiereSesion();
 
 $pageTitle = 'Listado de viajes registrados';
 $activePage = 'viajes_listado';
 
-$choferFiltradoId = es_chofer() ? (current_user()['id'] ?? null) : null; // Se determina si es necesario filtrar los viajes por el chofer autenticado.
-$viajes = obtener_viajes($choferFiltradoId); // Se obtienen los viajes aplicando el filtro según el nivel del usuario.
-$mostrarCosto = !es_chofer();
-$mostrarMontoChofer = !es_operador();
-$mostrarPorcentajeEnMonto = !es_chofer();
+$choferFiltradoId = EsChofer() ? (ObtenerUsuarioEnSesion()['id'] ?? null) : null; // Se determina si es necesario filtrar los viajes por el chofer autenticado.
+$viajes = Listar_Viajes($choferFiltradoId); // Se obtienen los viajes aplicando el filtro según el nivel del usuario.
+$mostrarCosto = !EsChofer();
+$mostrarMontoChofer = !EsOperador();
+$mostrarPorcentajeEnMonto = !EsChofer();
 
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/topbar.php';
@@ -55,12 +55,12 @@ require_once __DIR__ . '/includes/sidebar.php';
                             <?php else: ?>
                                 <?php foreach ($viajes as $index => $viaje): ?>
                                     <?php
-                                    $montoChofer = calcular_monto_chofer((float) $viaje['costo'], (int) $viaje['porcentaje_chofer']);
-                                    $filaClase = obtener_clase_fila($viaje['fecha_programada']);
+                                    $montoChofer = CalcularMontoChofer((float) $viaje['costo'], (int) $viaje['porcentaje_chofer']);
+                                    $filaClase = ObtenerClaseFila($viaje['fecha_programada']);
                                     ?>
                                     <tr class="<?php echo $filaClase; ?>">
                                         <td><?php echo $index + 1; ?></td>
-                                        <td><?php echo htmlspecialchars(format_date_spanish($viaje['fecha_programada'])); ?></td>
+                                        <td><?php echo htmlspecialchars(FormatearFechaEspaniol($viaje['fecha_programada'])); ?></td>
                                         <td><?php echo htmlspecialchars($viaje['destino']); ?></td>
                                         <td><?php echo htmlspecialchars($viaje['marca'] . ' - ' . $viaje['modelo'] . ' - ' . $viaje['patente']); ?></td>
                                         <td><?php echo htmlspecialchars($viaje['chofer_apellido'] . ', ' . $viaje['chofer_nombre']); ?></td>

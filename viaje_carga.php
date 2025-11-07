@@ -1,17 +1,17 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-require_login();
+RequiereSesion();
 
-if (es_chofer()) { // Se impide que los choferes accedan a la carga de viajes según los permisos definidos.
-    redirect('viajes_listado.php'); // Se redirige al listado para que solo vean sus propios viajes.
+if (EsChofer()) { // Se impide que los choferes accedan a la carga de viajes según los permisos definidos.
+    Redireccionar('viajes_listado.php'); // Se redirige al listado para que solo vean sus propios viajes.
 }
 
 $pageTitle = 'Registrar un nuevo viaje';
 $activePage = 'viaje_carga';
 
-$choferes = obtener_choferes();
-$transportes = obtener_transportes();
-$destinos = obtener_destinos(); // Se obtiene el listado de destinos para completar el selector correspondiente.
+$choferes = Listar_Choferes();
+$transportes = Listar_Transportes();
+$destinos = Listar_Destinos(); // Se obtiene el listado de destinos para completar el selector correspondiente.
 
 $errors = [];
 $success = false;
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Debes seleccionar un transporte válido.';
     }
 
-    $fechaNormalizada = convertir_fecha_formulario($fechaProgramada);
+    $fechaNormalizada = ConvertirFechaFormulario($fechaProgramada);
     if (!$fechaNormalizada) {
         $errors[] = 'Debes ingresar una fecha programada válida.';
     }
@@ -68,24 +68,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Debes seleccionar un destino válido.'; // Se notifica si la selección no es correcta.
     }
 
-    $importeNormalizado = normalizar_importe((string) $costo);
+    $importeNormalizado = NormalizarImporte((string) $costo);
     if ($importeNormalizado === null || $importeNormalizado <= 0) {
         $errors[] = 'El costo debe ser un valor numérico mayor a 0.';
     }
 
-    if (!validar_porcentaje((string) $porcentaje)) {
+    if (!ValidarPorcentaje((string) $porcentaje)) {
         $errors[] = 'El porcentaje del chofer debe ser un número entre 0 y 100.';
     }
 
     if (!$errors) {
-        guardar_viaje([
+        Insertar_Viaje([
             'chofer_id' => (int) $choferId,
             'transporte_id' => (int) $transporteId,
             'fecha_programada' => $fechaNormalizada,
             'destino_id' => (int) $destinoId, // Se envía el identificador del destino validado.
             'costo' => (float) $importeNormalizado,
             'porcentaje_chofer' => (int) $porcentaje,
-            'creado_por' => current_user()['id'] ?? null,
+            'creado_por' => ObtenerUsuarioEnSesion()['id'] ?? null,
         ]);
         $success = true;
         $choferId = $transporteId = $fechaProgramada = $destinoId = $costo = $porcentaje = ''; // Se limpian los campos para permitir cargar un nuevo viaje inmediatamente.

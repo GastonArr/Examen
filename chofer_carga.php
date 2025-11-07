@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-require_login();
+RequiereSesion();
 
-if (!es_admin()) { // Se verifica que solamente los administradores puedan cargar nuevos choferes, respetando los niveles de acceso.
-    redirect('index.php'); // Si el usuario no es administrador se lo redirige al panel principal para impedir el acceso.
+if (!EsAdministrador()) { // Se verifica que solamente los administradores puedan cargar nuevos choferes, respetando los niveles de acceso.
+    Redireccionar('index.php'); // Si el usuario no es administrador se lo redirige al panel principal para impedir el acceso.
 }
 
 $pageTitle = 'Registrar un nuevo chofer';
@@ -25,23 +25,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuarioForm = strtolower(trim($_POST['usuario'] ?? ''));
     $claveForm = trim($_POST['clave'] ?? '');
 
-    if (!campo_requerido($apellido)) {
+    if (!CampoRequerido($apellido)) {
         $errors[] = 'El apellido es obligatorio.';
     }
 
-    if (!campo_requerido($nombre)) {
+    if (!CampoRequerido($nombre)) {
         $errors[] = 'El nombre es obligatorio.';
     }
 
-    if (!campo_requerido($dni)) {
+    if (!CampoRequerido($dni)) {
         $errors[] = 'El DNI es obligatorio.';
-    } elseif (!validar_dni($dni)) {
+    } elseif (!ValidarDNI($dni)) {
         $errors[] = 'El DNI debe tener 7 u 8 dígitos numéricos.';
-    } elseif (dni_existe($dni)) {
+    } elseif (ExisteDNI($dni)) {
         $errors[] = 'El DNI ingresado ya se encuentra registrado.';
     }
 
-    if (!campo_requerido($usuarioForm)) {
+    if (!CampoRequerido($usuarioForm)) {
         $errors[] = 'El usuario es obligatorio.';
     } elseif (strlen($usuarioForm) < 3) {
         $errors[] = 'El usuario debe tener al menos 3 caracteres.';
@@ -61,18 +61,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if (!$errors && usuario_existe($usuarioForm)) {
+    if (!$errors && ExisteUsuario($usuarioForm)) {
         $errors[] = 'El usuario ingresado ya existe.';
     }
 
-    if (!campo_requerido($claveForm)) {
+    if (!CampoRequerido($claveForm)) {
         $errors[] = 'La clave es obligatoria.';
     } elseif (strlen($claveForm) < 5) {
         $errors[] = 'La clave debe tener al menos 5 caracteres.';
     }
 
     if (!$errors) {
-        $resultado = guardar_chofer([ // Se llama a la función que inserta el chofer y devuelve información complementaria.
+        $resultado = Insertar_Chofer([ // Se llama a la función que inserta el chofer y devuelve información complementaria.
             'apellido' => $apellido, // Se envía el apellido ya validado.
             'nombre' => $nombre, // Se envía el nombre proporcionado.
             'dni' => $dni, // Se envía el DNI confirmado como único.

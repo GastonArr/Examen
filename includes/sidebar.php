@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/functions.php';
 $currentPage = $activePage ?? ''; // Se obtiene la página actual para asignar estilos activos en el menú.
-$esAdminActual = es_admin(); // Se determina si el usuario autenticado es administrador.
-$esOperadorActual = es_operador(); // Se verifica si el usuario pertenece al nivel de operadores.
+$esAdminActual = EsAdministrador(); // Se determina si el usuario autenticado es administrador.
+$esOperadorActual = EsOperador(); // Se verifica si el usuario pertenece al nivel de operadores.
 
 $mostrarTransportes = $esAdminActual || $esOperadorActual; // Se habilita el menú de transportes para administradores y operadores.
 $mostrarChoferes = $esAdminActual; // Solo los administradores pueden cargar choferes.

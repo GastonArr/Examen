@@ -1,15 +1,15 @@
 <?php
 require_once __DIR__ . '/includes/functions.php'; // Se incluye el archivo de funciones para disponer de la conexión, utilidades y sesiones.
-require_login(); // Se asegura que solo usuarios autenticados puedan acceder a la pantalla.
+RequiereSesion(); // Se asegura que solo usuarios autenticados puedan acceder a la pantalla.
 
-if (es_chofer()) { // Se controla que los choferes no puedan cargar transportes como lo indica la consigna.
-    redirect('index.php'); // En caso de que un chofer llegue a la URL, se lo redirige al panel principal.
+if (EsChofer()) { // Se controla que los choferes no puedan cargar transportes como lo indica la consigna.
+    Redireccionar('index.php'); // En caso de que un chofer llegue a la URL, se lo redirige al panel principal.
 }
 
 $pageTitle = 'Registrar un nuevo transporte'; // Se define el título de la página para el encabezado HTML.
 $activePage = 'camion_carga'; // Se establece el identificador de la página activa para resaltar el menú lateral correspondiente.
 
-$marcas = obtener_marcas(); // Se obtienen todas las marcas registradas para alimentar el selector del formulario.
+$marcas = Listar_Marcas(); // Se obtienen todas las marcas registradas para alimentar el selector del formulario.
 
 $errors = []; // Se inicializa el arreglo que almacenará los mensajes de validación.
 $success = false; // Se prepara un indicador para mostrar el mensaje de guardado exitoso.
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
         $errors[] = 'Debes seleccionar una marca válida.'; // Se agrega un mensaje de error cuando la marca es inválida.
     }
 
-    if (!campo_requerido($modelo) || strlen($modelo) < 2) { // Se valida que el modelo tenga contenido y una longitud mínima para evitar valores sin sentido.
+    if (!CampoRequerido($modelo) || strlen($modelo) < 2) { // Se valida que el modelo tenga contenido y una longitud mínima para evitar valores sin sentido.
         $errors[] = 'El modelo es obligatorio y debe tener al menos 2 caracteres.'; // Se informa al usuario la regla aplicada.
     }
 
@@ -66,14 +66,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
         }
     }
 
-    if (!$errors && patente_existe($patente)) { // Se verifica que la patente no esté duplicada en la base de datos.
+    if (!$errors && ExistePatente($patente)) { // Se verifica que la patente no esté duplicada en la base de datos.
         $errors[] = 'La patente ingresada ya se encuentra registrada.'; // Se detiene el proceso avisando que el dato ya existe.
     }
 
     $disponibleValor = $disponible ? 1 : 0; // Se transforma el valor booleano del checkbox en entero para almacenarlo.
 
     if (!$errors) { // Se procede a guardar el transporte únicamente cuando no se detectaron errores.
-        guardar_transporte([ // Se llama a la función que inserta el transporte en la base de datos.
+        Insertar_Transporte([ // Se llama a la función que inserta el transporte en la base de datos.
             'marca_id' => (int) $marcaId, // Se envía la marca seleccionada casteada a entero.
             'modelo' => $modelo, // Se envía el modelo ya validado.
             'patente' => $patente, // Se envía la patente normalizada.
