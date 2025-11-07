@@ -30,13 +30,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $costo = $_POST['costo'] ?? '';
     $porcentaje = $_POST['porcentaje_chofer'] ?? '';
 
-    $choferesValidos = array_column($choferes, 'id'); // Se obtiene la lista de identificadores de choferes habilitados.
-    if (!$choferId || !in_array((string) $choferId, array_map('strval', $choferesValidos), true)) { // Se valida que el chofer seleccionado exista y esté activo.
+    $choferValido = false; // Se prepara una bandera para verificar el chofer seleccionado.
+    for ($i = 0; $i < count($choferes); $i++) { // Se recorren los choferes habilitados en busca del identificador enviado.
+        if ((string) $choferes[$i]['id'] === (string) $choferId) {
+            $choferValido = true;
+            break;
+        }
+    }
+    if (!$choferId || !$choferValido) { // Se valida que el chofer seleccionado exista y esté activo.
         $errors[] = 'Debes seleccionar un chofer válido.';
     }
 
-    $transportesValidos = array_column($transportes, 'id'); // Se obtiene la lista de transportes disponibles para validar la selección.
-    if (!$transporteId || !in_array((string) $transporteId, array_map('strval', $transportesValidos), true)) { // Se comprueba que el transporte elegido sea válido y esté habilitado.
+    $transporteValido = false; // Se prepara una bandera para validar el transporte.
+    for ($i = 0; $i < count($transportes); $i++) { // Se recorren los transportes activos para comprobar la selección recibida.
+        if ((string) $transportes[$i]['id'] === (string) $transporteId) {
+            $transporteValido = true;
+            break;
+        }
+    }
+    if (!$transporteId || !$transporteValido) { // Se comprueba que el transporte elegido sea válido y esté habilitado.
         $errors[] = 'Debes seleccionar un transporte válido.';
     }
 
@@ -45,8 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Debes ingresar una fecha programada válida.';
     }
 
-    $destinosValidos = array_column($destinos, 'id'); // Se arma un listado de identificadores válidos para controlar la selección.
-    if (!$destinoId || !in_array((string) $destinoId, array_map('strval', $destinosValidos), true)) { // Se valida que el destino exista en la base de datos.
+    $destinoValido = false; // Se prepara una bandera para validar el destino elegido.
+    for ($i = 0; $i < count($destinos); $i++) { // Se recorren los destinos disponibles.
+        if ((string) $destinos[$i]['id'] === (string) $destinoId) {
+            $destinoValido = true;
+            break;
+        }
+    }
+    if (!$destinoId || !$destinoValido) { // Se valida que el destino exista en la base de datos.
         $errors[] = 'Debes seleccionar un destino válido.'; // Se notifica si la selección no es correcta.
     }
 
