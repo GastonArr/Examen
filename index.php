@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
-require_login();
+RequiereSesion();
 
 $pageTitle = 'Panel de Administración';
 $activePage = 'dashboard';
-$user = current_user();
-$userFullName = user_full_name($user);
-$userDenominacion = nivel_denominacion($user['id_nivel'] ?? null);
-$funcionesPermitidas = descripcion_funciones_por_nivel($user['id_nivel'] ?? null);
+$user = ObtenerUsuarioEnSesion();
+$userFullName = NombreCompletoUsuario($user);
+$userDenominacion = DenominacionNivel($user['id_nivel'] ?? null);
+$funcionesPermitidas = DescripcionFuncionesNivel($user['id_nivel'] ?? null);
 
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/topbar.php';

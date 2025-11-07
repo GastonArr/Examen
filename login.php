@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
 
-if (current_user()) {
-    redirect('index.php');
+if (UsuarioEstaLogueado()) {
+    Redireccionar('index.php');
 }
 
 $pageTitle = 'Panel de Administración - Login';
@@ -13,21 +13,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = strtolower(trim($_POST['usuario'] ?? ''));
     $clave = trim($_POST['clave'] ?? '');
 
-    if (!campo_requerido($usuario)) {
+    if (!CampoRequerido($usuario)) {
         $errors[] = 'El usuario es obligatorio.';
     }
 
-    if (!campo_requerido($clave)) {
+    if (!CampoRequerido($clave)) {
         $errors[] = 'La clave es obligatoria.';
     } elseif (strlen($clave) < 5) {
         $errors[] = 'La clave debe tener al menos 5 caracteres.';
     }
 
     if (!$errors) {
-        $user = authenticate_user($usuario, $clave);
-        if ($user) {
-            login_user($user);
-            redirect('index.php');
+        $datosUsuario = DatosLogin($usuario, $clave);
+        if (!empty($datosUsuario)) {
+            GuardarSesionUsuario($datosUsuario);
+            Redireccionar('index.php');
         } else {
             $errors[] = 'Los datos son incorrectos. Intenta nuevamente.';
         }

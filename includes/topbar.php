@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/functions.php';
-$user = current_user();
+$user = ObtenerUsuarioEnSesion();
 ?>
 <header id="header" class="header fixed-top d-flex align-items-center">
     <div class="d-flex align-items-center justify-content-between">
@@ -16,12 +16,12 @@ $user = current_user();
             <li class="nav-item dropdown pe-3">
                 <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
                     <img src="assets/img/<?php echo htmlspecialchars($user['imagen'] ?? 'profile-img.jpg'); ?>" alt="Profile" class="rounded-circle">
-                    <span class="d-none d-md-block dropdown-toggle ps-2"><?php echo htmlspecialchars(user_full_name($user)); ?></span>
+                    <span class="d-none d-md-block dropdown-toggle ps-2"><?php echo htmlspecialchars(NombreCompletoUsuario($user)); ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                     <li class="dropdown-header">
-                        <h6><?php echo htmlspecialchars(user_full_name($user)); ?></h6>
-                        <span><?php echo htmlspecialchars(nivel_denominacion($user['id_nivel'] ?? null)); ?></span>
+                        <h6><?php echo htmlspecialchars(NombreCompletoUsuario($user)); ?></h6>
+                        <span><?php echo htmlspecialchars(DenominacionNivel($user['id_nivel'] ?? null)); ?></span>
                     </li>
                     <li>
                         <hr class="dropdown-divider">
