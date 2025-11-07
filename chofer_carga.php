@@ -121,7 +121,7 @@ require_once __DIR__ . '/includes/sidebar.php';
                         <?php endif; ?>
                         <?php if ($success): ?>
                             <div class="alert alert-success" role="alert">
-                                <i class="bi bi-check-circle me-1"></i> ¡Los datos se guardaron correctamente! <?php if ($successData): ?>Usuario registrado: <strong><?php echo htmlspecialchars($successData['usuario']); ?></strong> - Clave: <strong><?php echo htmlspecialchars($successData['clave']); ?></strong><?php endif; ?>
+                                <i class="bi bi-check-circle me-1"></i> ¡Los datos se guardaron correctamente!
                             </div>
                         <?php endif; ?>
                         <form class="row g-3" method="post" action="" novalidate>
