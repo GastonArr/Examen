@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!campo_requerido($clave)) {
         $errors[] = 'La clave es obligatoria.';
-    } elseif (!preg_match('/^[A-Za-z0-9]{5,}$/', $clave)) {
-        $errors[] = 'La clave debe tener al menos 5 caracteres y solo puede contener letras o números.';
+    } elseif (strlen($clave) < 5) {
+        $errors[] = 'La clave debe tener al menos 5 caracteres.';
     }
 
     if (!$errors) {

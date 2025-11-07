@@ -26,8 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
     $patente = strtoupper(str_replace(' ', '', $_POST['patente'] ?? '')); // Se normaliza la patente: se quitan espacios y se convierte a mayúsculas.
     $disponible = isset($_POST['disponible']); // Se interpreta el estado del checkbox de disponibilidad.
 
-    $marcasValidas = array_column($marcas, 'id'); // Se crea un arreglo con los identificadores válidos de marca para validar la selección.
-    if (!$marcaId || !in_array((string) $marcaId, array_map('strval', $marcasValidas), true)) { // Se verifica que se haya elegido una marca existente.
+    $marcaValida = false; // Se prepara una bandera para validar la marca seleccionada.
+    for ($i = 0; $i < count($marcas); $i++) { // Se recorren las marcas disponibles para comparar el identificador recibido.
+        if ((string) $marcas[$i]['id'] === (string) $marcaId) {
+            $marcaValida = true;
+            break;
+        }
+    }
+    if (!$marcaId || !$marcaValida) { // Se verifica que se haya elegido una marca existente.
         $errors[] = 'Debes seleccionar una marca válida.'; // Se agrega un mensaje de error cuando la marca es inválida.
     }
 
@@ -37,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
 
     $anioNormalizado = 0; // Se prepara una variable numérica para almacenar el año validado.
     if ($anio !== '') { // Se ingresa a validar solamente si el usuario escribió un año.
-        if (!preg_match('/^\d{4}$/', $anio)) { // Se verifica que el año contenga exactamente cuatro dígitos numéricos.
+        if (!ctype_digit($anio) || strlen($anio) !== 4) { // Se verifica que el año contenga exactamente cuatro dígitos numéricos.
             $errors[] = 'El año debe estar compuesto por 4 dígitos.'; // Se detalla el motivo del error.
         } else {
             $anioEntero = (int) $anio; // Se convierte la cadena numérica en entero para aplicar reglas adicionales.
@@ -50,9 +56,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
         }
     }
 
-    if (!preg_match('/^[A-Z0-9]{6,7}$/', $patente)) { // Se controla que la patente cumpla con el formato alfanumérico de 6 o 7 caracteres.
-        $errors[] = 'La patente debe tener entre 6 y 7 caracteres alfanuméricos.'; // Se comunica el problema al usuario.
-    } elseif (patente_existe($patente)) { // Se verifica que la patente no esté duplicada en la base de datos.
+    if ($patente === '') { // Se controla que la patente tenga contenido.
+        $errors[] = 'La patente es obligatoria.'; // Se indica al usuario que debe completar el dato.
+    } else {
+        $longitudPatente = strlen($patente);
+        $patenteValida = $longitudPatente >= 6 && $longitudPatente <= 7 && ctype_alnum($patente);
+        if (!$patenteValida) { // Se controla que la patente cumpla con el formato alfanumérico de 6 o 7 caracteres.
+            $errors[] = 'La patente debe tener entre 6 y 7 caracteres alfanuméricos.'; // Se comunica el problema al usuario.
+        }
+    }
+
+    if (!$errors && patente_existe($patente)) { // Se verifica que la patente no esté duplicada en la base de datos.
         $errors[] = 'La patente ingresada ya se encuentra registrada.'; // Se detiene el proceso avisando que el dato ya existe.
     }
 

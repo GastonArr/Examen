@@ -43,16 +43,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!campo_requerido($usuarioForm)) {
         $errors[] = 'El usuario es obligatorio.';
-    } elseif (!preg_match('/^[a-z0-9._-]{3,}$/', $usuarioForm)) {
-        $errors[] = 'El usuario debe tener al menos 3 caracteres y solo puede incluir letras, números, puntos, guiones o guiones bajos.';
-    } elseif (usuario_existe($usuarioForm)) {
+    } elseif (strlen($usuarioForm) < 3) {
+        $errors[] = 'El usuario debe tener al menos 3 caracteres.';
+    } else {
+        $permitidos = '._-';
+        $usuarioValido = true;
+        for ($i = 0; $i < strlen($usuarioForm); $i++) {
+            $caracter = $usuarioForm[$i];
+            if (!ctype_alnum($caracter) && strpos($permitidos, $caracter) === false) {
+                $usuarioValido = false;
+                break;
+            }
+        }
+
+        if (!$usuarioValido) {
+            $errors[] = 'El usuario solo puede incluir letras, números, puntos, guiones o guiones bajos.';
+        }
+    }
+
+    if (!$errors && usuario_existe($usuarioForm)) {
         $errors[] = 'El usuario ingresado ya existe.';
     }
 
     if (!campo_requerido($claveForm)) {
         $errors[] = 'La clave es obligatoria.';
-    } elseif (!preg_match('/^[A-Za-z0-9]{5,}$/', $claveForm)) {
-        $errors[] = 'La clave debe tener al menos 5 caracteres y solo puede contener letras o números.';
+    } elseif (strlen($claveForm) < 5) {
+        $errors[] = 'La clave debe tener al menos 5 caracteres.';
     }
 
     if (!$errors) {
