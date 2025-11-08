@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/functions.php';
+require_once 'funciones/conexion.php';
+require_once 'funciones/funciones.php';
 RequiereSesion();
 
 if (EsChofer()) { // Se impide que los choferes accedan a la carga de viajes según los permisos definidos.

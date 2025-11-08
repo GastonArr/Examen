@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/functions.php';
 $user = ObtenerUsuarioEnSesion();
 ?>
 <header id="header" class="header fixed-top d-flex align-items-center">
