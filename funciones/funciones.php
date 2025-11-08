@@ -1,11 +1,26 @@
 <?php
 
+require_once __DIR__ . '/conexion.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 if (!date_default_timezone_set('America/Argentina/Cordoba')) {
     date_default_timezone_set('UTC');
+}
+
+function ObtenerConexionActiva($vConexion = null)
+{
+    if ($vConexion instanceof mysqli) {
+        return $vConexion;
+    }
+
+    if ($vConexion) {
+        return $vConexion;
+    }
+
+    return ConexionBD();
 }
 
 function Redireccionar($Ruta)
@@ -16,7 +31,7 @@ function Redireccionar($Ruta)
 
 function DatosLogin($vUsuario, $vClave, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $Usuario = [];
 
     $UsuarioSQL = mysqli_real_escape_string($Conexion, $vUsuario);
@@ -183,7 +198,7 @@ function Usuario_FuncionesPermitidas()
 
 function Listar_Choferes($vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = [];
 
     $SQL = "SELECT id, apellido, nombre, dni FROM usuarios WHERE id_nivel = 3 AND activo = 1 ORDER BY apellido ASC, nombre ASC";
@@ -208,7 +223,7 @@ function Listar_Choferes($vConexion = null)
 
 function Listar_Transportes($vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = [];
 
     $SQL = "SELECT t.id, m.denominacion AS marca, t.modelo, t.patente FROM transportes t " .
@@ -235,7 +250,7 @@ function Listar_Transportes($vConexion = null)
 
 function Listar_Marcas($vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = [];
 
     $SQL = "SELECT id, denominacion FROM marcas ORDER BY denominacion ASC";
@@ -258,7 +273,7 @@ function Listar_Marcas($vConexion = null)
 
 function Listar_Destinos($vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = [];
 
     $SQL = "SELECT id, denominacion FROM destinos ORDER BY denominacion ASC";
@@ -321,13 +336,13 @@ function ConvertirFechaFormulario($Fecha)
 
 function Insertar_Chofer($Datos, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
 
-    $Apellido = mysqli_real_escape_string($Conexion, $Datos['apellido']);
-    $Nombre = mysqli_real_escape_string($Conexion, $Datos['nombre']);
-    $Dni = mysqli_real_escape_string($Conexion, $Datos['dni']);
-    $Usuario = mysqli_real_escape_string($Conexion, strtolower(trim($Datos['usuario'])));
-    $Clave = mysqli_real_escape_string($Conexion, trim($Datos['clave']));
+    $Apellido = mysqli_real_escape_string($Conexion, trim($Datos['apellido'] ?? ''));
+    $Nombre = mysqli_real_escape_string($Conexion, trim($Datos['nombre'] ?? ''));
+    $Dni = mysqli_real_escape_string($Conexion, trim($Datos['dni'] ?? ''));
+    $Usuario = mysqli_real_escape_string($Conexion, strtolower(trim($Datos['usuario'] ?? '')));
+    $Clave = mysqli_real_escape_string($Conexion, trim($Datos['clave'] ?? ''));
 
     $SQL = "INSERT INTO usuarios (apellido, nombre, dni, usuario, clave, activo, id_nivel, fecha_creacion) VALUES (" .
         "'" . $Apellido . "', '" . $Nombre . "', '" . $Dni . "', '" . $Usuario . "', '" . $Clave . "', 1, 3, NOW())";
@@ -345,13 +360,14 @@ function Insertar_Chofer($Datos, $vConexion = null)
 
 function Insertar_Transporte($Datos, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
 
-    $Marca = (int) $Datos['marca_id'];
-    $Modelo = mysqli_real_escape_string($Conexion, $Datos['modelo']);
-    $Patente = mysqli_real_escape_string($Conexion, $Datos['patente']);
-    $Anio = (int) $Datos['anio'];
-    $Disponible = (int) $Datos['disponible'];
+    $Marca = isset($Datos['marca_id']) ? (int) $Datos['marca_id'] : 0;
+    $Modelo = mysqli_real_escape_string($Conexion, trim($Datos['modelo'] ?? ''));
+    $Patente = mysqli_real_escape_string($Conexion, trim($Datos['patente'] ?? ''));
+    $Anio = isset($Datos['anio']) ? (int) $Datos['anio'] : 0;
+    $Disponible = isset($Datos['disponible']) ? (int) $Datos['disponible'] : 0;
+
 
     $SQL = "INSERT INTO transportes (marca_id, modelo, patente, anio, disponible, fecha_creacion) VALUES (" .
         $Marca . ", '" . $Modelo . "', '" . $Patente . "', " . $Anio . ", " . $Disponible . ", NOW())";
@@ -365,14 +381,14 @@ function Insertar_Transporte($Datos, $vConexion = null)
 
 function Insertar_Viaje($Datos, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
 
-    $Chofer = (int) $Datos['chofer_id'];
-    $Transporte = (int) $Datos['transporte_id'];
-    $Fecha = mysqli_real_escape_string($Conexion, $Datos['fecha_programada']);
-    $Destino = (int) $Datos['destino_id'];
-    $Costo = (float) $Datos['costo'];
-    $Porcentaje = (int) $Datos['porcentaje_chofer'];
+    $Chofer = isset($Datos['chofer_id']) ? (int) $Datos['chofer_id'] : 0;
+    $Transporte = isset($Datos['transporte_id']) ? (int) $Datos['transporte_id'] : 0;
+    $Fecha = mysqli_real_escape_string($Conexion, trim($Datos['fecha_programada'] ?? ''));
+    $Destino = isset($Datos['destino_id']) ? (int) $Datos['destino_id'] : 0;
+    $Costo = isset($Datos['costo']) ? (float) $Datos['costo'] : 0;
+    $Porcentaje = isset($Datos['porcentaje_chofer']) ? (int) $Datos['porcentaje_chofer'] : 0;
     $CreadoPor = !empty($Datos['creado_por']) ? (int) $Datos['creado_por'] : 'NULL';
 
     $SQL = "INSERT INTO viajes (chofer_id, transporte_id, fecha_programada, destino_id, costo, porcentaje_chofer, creado_por, fecha_creacion) " .
@@ -387,7 +403,7 @@ function Insertar_Viaje($Datos, $vConexion = null)
 
 function Listar_Viajes($ChoferId = null, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = [];
 
     $SQL = "SELECT v.id, v.fecha_programada, d.denominacion AS destino, v.costo, v.porcentaje_chofer, " .
@@ -460,7 +476,7 @@ function ValidarPorcentaje($Valor)
 
 function ExisteUsuario($Usuario, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $UsuarioSQL = mysqli_real_escape_string($Conexion, $Usuario);
     $SQL = "SELECT id FROM usuarios WHERE usuario = '" . $UsuarioSQL . "'";
 
@@ -477,7 +493,7 @@ function ExisteUsuario($Usuario, $vConexion = null)
 
 function ExisteDNI($Dni, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $DniSQL = mysqli_real_escape_string($Conexion, $Dni);
     $SQL = "SELECT id FROM usuarios WHERE dni = '" . $DniSQL . "'";
 
@@ -494,7 +510,7 @@ function ExisteDNI($Dni, $vConexion = null)
 
 function ExistePatente($Patente, $vConexion = null)
 {
-    $Conexion = $vConexion ?: ConexionBD();
+    $Conexion = ObtenerConexionActiva($vConexion);
     $PatenteSQL = mysqli_real_escape_string($Conexion, $Patente);
     $SQL = "SELECT id FROM transportes WHERE patente = '" . $PatenteSQL . "'";
 
