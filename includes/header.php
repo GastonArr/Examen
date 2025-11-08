@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__ . '/functions.php';
-
 $pageTitle = $pageTitle ?? 'Panel de Administración';
 ?>
 <!DOCTYPE html>

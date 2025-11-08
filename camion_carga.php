@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/functions.php'; // Se incluye el archivo de funciones para disponer de la conexión, utilidades y sesiones.
+require_once 'funciones/conexion.php';
+require_once 'funciones/funciones.php'; // Se incluye el archivo de funciones para disponer de la conexión, utilidades y sesiones.
 RequiereSesion(); // Se asegura que solo usuarios autenticados puedan acceder a la pantalla.
 
 if (EsChofer()) { // Se controla que los choferes no puedan cargar transportes como lo indica la consigna.

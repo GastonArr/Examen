@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/functions.php';
 $currentPage = $activePage ?? ''; // Se obtiene la página actual para asignar estilos activos en el menú.
 $esAdminActual = EsAdministrador(); // Se determina si el usuario autenticado es administrador.
 $esOperadorActual = EsOperador(); // Se verifica si el usuario pertenece al nivel de operadores.

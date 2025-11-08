@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/functions.php';
+require_once 'funciones/conexion.php';
+require_once 'funciones/funciones.php';
 RequiereSesion();
 
 if (!EsAdministrador()) { // Se verifica que solamente los administradores puedan cargar nuevos choferes, respetando los niveles de acceso.
