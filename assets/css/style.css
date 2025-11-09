@@ -1232,15 +1232,15 @@ h6 {
   color: #012970;
 }
 /* Estilos personalizados para el listado de viajes */
-.table tbody tr.fila-realizado {
+.table tbody tr.fila-realizado > * {
     background-color: #d4edda;
 }
 
-.table tbody tr.fila-hoy {
+.table tbody tr.fila-hoy > * {
     background-color: #f8d7da;
 }
 
-.table tbody tr.fila-maniana {
+.table tbody tr.fila-maniana > * {
     background-color: #fff3cd;
 }
 
