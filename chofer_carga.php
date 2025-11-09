@@ -12,7 +12,7 @@ $MiConexion = ConexionBD();
 $pageTitle = 'Registrar un nuevo chofer';
 $activePage = 'choferes';
 
-$errors = [];
+$errors = array();
 $success = false;
 $successData = null; // Se inicializa la variable que almacenará los datos del registro exitoso para mostrarlos en pantalla.
 $apellido = '';
@@ -22,11 +22,35 @@ $usuarioForm = '';
 $claveForm = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $apellido = trim($_POST['apellido'] ?? '');
-    $nombre = trim($_POST['nombre'] ?? '');
-    $dni = trim($_POST['dni'] ?? '');
-    $usuarioForm = strtolower(trim($_POST['usuario'] ?? ''));
-    $claveForm = trim($_POST['clave'] ?? '');
+    if (isset($_POST['apellido'])) {
+        $apellido = trim($_POST['apellido']);
+    } else {
+        $apellido = '';
+    }
+
+    if (isset($_POST['nombre'])) {
+        $nombre = trim($_POST['nombre']);
+    } else {
+        $nombre = '';
+    }
+
+    if (isset($_POST['dni'])) {
+        $dni = trim($_POST['dni']);
+    } else {
+        $dni = '';
+    }
+
+    if (isset($_POST['usuario'])) {
+        $usuarioForm = strtolower(trim($_POST['usuario']));
+    } else {
+        $usuarioForm = '';
+    }
+
+    if (isset($_POST['clave'])) {
+        $claveForm = trim($_POST['clave']);
+    } else {
+        $claveForm = '';
+    }
 
     if (!CampoRequerido($apellido)) {
         $errors[] = 'El apellido es obligatorio.';
@@ -75,22 +99,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $resultado = Insertar_Chofer([ // Se llama a la función que inserta el chofer y devuelve información complementaria.
+        $resultado = Insertar_Chofer(array( // Se llama a la función que inserta el chofer y devuelve información complementaria.
             'apellido' => $apellido, // Se envía el apellido ya validado.
             'nombre' => $nombre, // Se envía el nombre proporcionado.
             'dni' => $dni, // Se envía el DNI confirmado como único.
             'usuario' => $usuarioForm, // Se envía el usuario validado.
             'clave' => $claveForm, // Se envía la clave validada.
-        ], $MiConexion);
+        ), $MiConexion);
         $success = true; // Se marca el registro como exitoso para mostrar el mensaje correspondiente.
         $successData = $resultado; // Se almacenan los datos retornados (usuario y clave final) para comunicarlos al administrador.
         $apellido = $nombre = $dni = $usuarioForm = $claveForm = '';
     }
 }
 
-require_once __DIR__ . '/includes/header.php';
-require_once __DIR__ . '/includes/topbar.php';
-require_once __DIR__ . '/includes/sidebar.php';
+require_once 'includes/header.php';
+require_once 'includes/topbar.php';
+require_once 'includes/sidebar.php';
 ?>
 <main id="main" class="main">
     <div class="pagetitle">
@@ -160,4 +184,4 @@ require_once __DIR__ . '/includes/sidebar.php';
         </div>
     </section>
 </main>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

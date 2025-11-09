@@ -7,12 +7,16 @@ $pageTitle = 'Panel de Administración';
 $activePage = 'dashboard';
 $user = ObtenerUsuarioEnSesion();
 $userFullName = NombreCompletoUsuario($user);
-$userDenominacion = DenominacionNivel($user['id_nivel'] ?? null);
-$funcionesPermitidas = DescripcionFuncionesNivel($user['id_nivel'] ?? null);
+$userNivel = null;
+if (isset($user['id_nivel'])) {
+    $userNivel = $user['id_nivel'];
+}
+$userDenominacion = DenominacionNivel($userNivel);
+$funcionesPermitidas = DescripcionFuncionesNivel($userNivel);
 
-require_once __DIR__ . '/includes/header.php';
-require_once __DIR__ . '/includes/topbar.php';
-require_once __DIR__ . '/includes/sidebar.php';
+require_once 'includes/header.php';
+require_once 'includes/topbar.php';
+require_once 'includes/sidebar.php';
 ?>
 <main id="main" class="main">
     <div class="pagetitle">
@@ -37,4 +41,4 @@ require_once __DIR__ . '/includes/sidebar.php';
         </div>
     </section>
 </main>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

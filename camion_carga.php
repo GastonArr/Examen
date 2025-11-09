@@ -14,7 +14,7 @@ $activePage = 'camion_carga'; // Se establece el identificador de la página act
 
 $marcas = Listar_Marcas($MiConexion); // Se obtienen todas las marcas registradas para alimentar el selector del formulario.
 
-$errors = []; // Se inicializa el arreglo que almacenará los mensajes de validación.
+$errors = array(); // Se inicializa el arreglo que almacenará los mensajes de validación.
 $success = false; // Se prepara un indicador para mostrar el mensaje de guardado exitoso.
 $marcaId = ''; // Se guarda la selección actual de la marca para repoblar el formulario ante errores.
 $modelo = ''; // Se inicializa el campo del modelo del camión.
@@ -23,10 +23,29 @@ $patente = ''; // Se inicializa la patente para mantener la entrada del usuario.
 $disponible = true; // Se asume que el transporte se cargará habilitado salvo que el usuario desmarque la opción.
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formulario para procesar los datos.
-    $marcaId = $_POST['marca_id'] ?? ''; // Se obtiene la marca seleccionada desde el formulario.
-    $modelo = trim($_POST['modelo'] ?? ''); // Se limpia el modelo eliminando espacios al inicio y final.
-    $anio = trim($_POST['anio'] ?? ''); // Se obtiene el año del vehículo como cadena para validarlo manualmente.
-    $patente = strtoupper(str_replace(' ', '', $_POST['patente'] ?? '')); // Se normaliza la patente: se quitan espacios y se convierte a mayúsculas.
+    if (isset($_POST['marca_id'])) { // Se obtiene la marca seleccionada desde el formulario.
+        $marcaId = $_POST['marca_id'];
+    } else {
+        $marcaId = '';
+    }
+
+    if (isset($_POST['modelo'])) { // Se limpia el modelo eliminando espacios al inicio y final.
+        $modelo = trim($_POST['modelo']);
+    } else {
+        $modelo = '';
+    }
+
+    if (isset($_POST['anio'])) { // Se obtiene el año del vehículo como cadena para validarlo manualmente.
+        $anio = trim($_POST['anio']);
+    } else {
+        $anio = '';
+    }
+
+    if (isset($_POST['patente'])) { // Se normaliza la patente: se quitan espacios y se convierte a mayúsculas.
+        $patente = strtoupper(str_replace(' ', '', $_POST['patente']));
+    } else {
+        $patente = '';
+    }
     $disponible = isset($_POST['disponible']); // Se interpreta el estado del checkbox de disponibilidad.
 
     $marcaValida = false; // Se prepara una bandera para validar la marca seleccionada.
@@ -76,22 +95,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
     $disponibleValor = $disponible ? 1 : 0; // Se transforma el valor booleano del checkbox en entero para almacenarlo.
 
     if (!$errors) { // Se procede a guardar el transporte únicamente cuando no se detectaron errores.
-        Insertar_Transporte([ // Se llama a la función que inserta el transporte en la base de datos.
+        Insertar_Transporte(array( // Se llama a la función que inserta el transporte en la base de datos.
             'marca_id' => (int) $marcaId, // Se envía la marca seleccionada casteada a entero.
             'modelo' => $modelo, // Se envía el modelo ya validado.
             'patente' => $patente, // Se envía la patente normalizada.
             'anio' => $anioNormalizado, // Se envía el año validado o cero si no se informó.
             'disponible' => $disponibleValor, // Se envía el estado de disponibilidad del transporte.
-        ], $MiConexion);
+        ), $MiConexion);
         $success = true; // Se activa la bandera para mostrar el mensaje de éxito.
         $marcaId = $modelo = $anio = $patente = ''; // Se limpian los campos para evitar que queden valores previos en el formulario.
         $disponible = true; // Se restablece el checkbox como seleccionado luego de guardar.
     }
 }
 
-require_once __DIR__ . '/includes/header.php'; // Se carga el encabezado común del panel.
-require_once __DIR__ . '/includes/topbar.php'; // Se incluye la barra superior con los datos del usuario logueado.
-require_once __DIR__ . '/includes/sidebar.php'; // Se incluye el menú lateral que respeta los permisos del usuario.
+require_once 'includes/header.php'; // Se carga el encabezado común del panel.
+require_once 'includes/topbar.php'; // Se incluye la barra superior con los datos del usuario logueado.
+require_once 'includes/sidebar.php'; // Se incluye el menú lateral que respeta los permisos del usuario.
 ?>
 <main id="main" class="main">
     <!-- Sección de título de la página -->
@@ -172,4 +191,4 @@ require_once __DIR__ . '/includes/sidebar.php'; // Se incluye el menú lateral q
         </div>
     </section>
 </main>
-<?php require_once __DIR__ . '/includes/footer.php'; // Se agrega el pie común para cerrar el HTML. ?>
+<?php require_once 'includes/footer.php'; // Se agrega el pie común para cerrar el HTML. ?>

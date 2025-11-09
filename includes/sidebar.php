@@ -1,19 +1,29 @@
 <?php
-$currentPage = $activePage ?? ''; // Se obtiene la página actual para asignar estilos activos en el menú.
+$currentPage = '';
+if (isset($activePage)) { // Se obtiene la página actual para asignar estilos activos en el menú.
+    $currentPage = $activePage;
+}
 $esAdminActual = EsAdministrador(); // Se determina si el usuario autenticado es administrador.
 $esOperadorActual = EsOperador(); // Se verifica si el usuario pertenece al nivel de operadores.
 
 $mostrarTransportes = $esAdminActual || $esOperadorActual; // Se habilita el menú de transportes para administradores y operadores.
 $mostrarChoferes = $esAdminActual; // Solo los administradores pueden cargar choferes.
 $mostrarCargaViajes = $esAdminActual || $esOperadorActual; // Administradores y operadores pueden crear viajes.
-$transportNavPages = array_filter([ // Se arma el arreglo de páginas que pertenecen al grupo Transportes para controlar el despliegue.
-    $mostrarTransportes ? 'camion_carga' : null, // Se incluye la carga de camiones si el usuario tiene permiso.
-    $mostrarChoferes ? 'choferes' : null, // Se incluye la carga de choferes únicamente para administradores.
-]);
-$viajesNavPages = array_filter([ // Se arma el arreglo de páginas correspondientes al grupo Viajes.
-    $mostrarCargaViajes ? 'viaje_carga' : null, // Se incluye la carga de viajes según los permisos.
-    'viajes_listado', // Siempre se incluye el listado porque todos los niveles pueden verlo.
-]);
+
+$transportNavPages = array(); // Se arma el arreglo de páginas que pertenecen al grupo Transportes.
+if ($mostrarTransportes) { // Se incluye la carga de camiones si el usuario tiene permiso.
+    $transportNavPages[] = 'camion_carga';
+}
+if ($mostrarChoferes) { // Se incluye la carga de choferes únicamente para administradores.
+    $transportNavPages[] = 'choferes';
+}
+
+$viajesNavPages = array(); // Se arma el arreglo de páginas correspondientes al grupo Viajes.
+if ($mostrarCargaViajes) { // Se incluye la carga de viajes según los permisos.
+    $viajesNavPages[] = 'viaje_carga';
+}
+$viajesNavPages[] = 'viajes_listado'; // Siempre se incluye el listado porque todos los niveles pueden verlo.
+
 $transportNavAbierto = in_array($currentPage, $transportNavPages, true); // Se determina si el submenú de transportes debe mostrarse expandido.
 $viajesNavAbierto = in_array($currentPage, $viajesNavPages, true); // Se evalúa si el submenú de viajes debe mostrarse expandido.
 ?>
