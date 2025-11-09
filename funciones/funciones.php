@@ -5,24 +5,14 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function ObtenerConexionActiva($vConexion = null)
-{
-    if (!empty($vConexion)) {
-        return $vConexion;
-    }
-
-    return ConexionBD();
-}
-
 function Redireccionar($Ruta)
 {
     header('Location: ' . $Ruta);
     exit;
 }
 
-function DatosLogin($vUsuario, $vClave, $vConexion = null)
+function DatosLogin($vUsuario, $vClave, $vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $Usuario = array();
 
     $SQL = "SELECT U.id, U.apellido, U.nombre, U.usuario, U.clave, U.id_nivel, U.imagen, U.activo,"
@@ -32,7 +22,7 @@ function DatosLogin($vUsuario, $vClave, $vConexion = null)
         . " AND U.usuario = '" . $vUsuario . "'"
         . " AND U.clave = '" . $vClave . "'";
 
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs != false) {
         $data = mysqli_fetch_array($rs);
@@ -64,24 +54,15 @@ function DatosLogin($vUsuario, $vClave, $vConexion = null)
 
 function GuardarSesionUsuario($DatosUsuario)
 {
-    $_SESSION['Usuario_ID'] = isset($DatosUsuario['ID']) ? $DatosUsuario['ID'] : null;
-    $_SESSION['Usuario_Nombre'] = isset($DatosUsuario['NOMBRE']) ? $DatosUsuario['NOMBRE'] : null;
-    $_SESSION['Usuario_Apellido'] = isset($DatosUsuario['APELLIDO']) ? $DatosUsuario['APELLIDO'] : null;
-    $_SESSION['Usuario_Usuario'] = isset($DatosUsuario['USUARIO']) ? $DatosUsuario['USUARIO'] : null;
-    $_SESSION['Usuario_Nivel'] = isset($DatosUsuario['NIVEL']) ? $DatosUsuario['NIVEL'] : null;
-    $_SESSION['Usuario_NombreNivel'] = isset($DatosUsuario['NIVEL_NOMBRE']) ? $DatosUsuario['NIVEL_NOMBRE'] : null;
-    $_SESSION['Usuario_Img'] = isset($DatosUsuario['IMG']) ? $DatosUsuario['IMG'] : 'user.png';
-    $_SESSION['Usuario_Saludo'] = isset($DatosUsuario['SALUDO']) ? $DatosUsuario['SALUDO'] : 'Hola';
-    $_SESSION['Usuario_Activo'] = isset($DatosUsuario['ACTIVO']) ? $DatosUsuario['ACTIVO'] : 0;
-
-    $_SESSION['user'] = array(
-        'id' => $_SESSION['Usuario_ID'],
-        'apellido' => $_SESSION['Usuario_Apellido'],
-        'nombre' => $_SESSION['Usuario_Nombre'],
-        'usuario' => $_SESSION['Usuario_Usuario'],
-        'id_nivel' => $_SESSION['Usuario_Nivel'],
-        'imagen' => $_SESSION['Usuario_Img'],
-    );
+    $_SESSION['Usuario_ID'] = !empty($DatosUsuario['ID']) ? $DatosUsuario['ID'] : 0;
+    $_SESSION['Usuario_Nombre'] = !empty($DatosUsuario['NOMBRE']) ? $DatosUsuario['NOMBRE'] : '';
+    $_SESSION['Usuario_Apellido'] = !empty($DatosUsuario['APELLIDO']) ? $DatosUsuario['APELLIDO'] : '';
+    $_SESSION['Usuario_Usuario'] = !empty($DatosUsuario['USUARIO']) ? $DatosUsuario['USUARIO'] : '';
+    $_SESSION['Usuario_Nivel'] = !empty($DatosUsuario['NIVEL']) ? $DatosUsuario['NIVEL'] : 0;
+    $_SESSION['Usuario_NombreNivel'] = !empty($DatosUsuario['NIVEL_NOMBRE']) ? $DatosUsuario['NIVEL_NOMBRE'] : '';
+    $_SESSION['Usuario_Img'] = !empty($DatosUsuario['IMG']) ? $DatosUsuario['IMG'] : 'user.png';
+    $_SESSION['Usuario_Saludo'] = !empty($DatosUsuario['SALUDO']) ? $DatosUsuario['SALUDO'] : 'Hola';
+    $_SESSION['Usuario_Activo'] = !empty($DatosUsuario['ACTIVO']) ? $DatosUsuario['ACTIVO'] : 0;
 }
 
 function CerrarSesionUsuario()
@@ -92,18 +73,14 @@ function CerrarSesionUsuario()
 
 function ObtenerUsuarioEnSesion()
 {
-    if (!empty($_SESSION['user'])) {
-        return $_SESSION['user'];
-    }
-
     if (!empty($_SESSION['Usuario_ID'])) {
         $Usuario = array();
         $Usuario['id'] = $_SESSION['Usuario_ID'];
-        $Usuario['apellido'] = isset($_SESSION['Usuario_Apellido']) ? $_SESSION['Usuario_Apellido'] : '';
-        $Usuario['nombre'] = isset($_SESSION['Usuario_Nombre']) ? $_SESSION['Usuario_Nombre'] : '';
-        $Usuario['usuario'] = isset($_SESSION['Usuario_Usuario']) ? $_SESSION['Usuario_Usuario'] : '';
-        $Usuario['id_nivel'] = isset($_SESSION['Usuario_Nivel']) ? $_SESSION['Usuario_Nivel'] : '';
-        $Usuario['imagen'] = isset($_SESSION['Usuario_Img']) ? $_SESSION['Usuario_Img'] : 'user.png';
+        $Usuario['apellido'] = !empty($_SESSION['Usuario_Apellido']) ? $_SESSION['Usuario_Apellido'] : '';
+        $Usuario['nombre'] = !empty($_SESSION['Usuario_Nombre']) ? $_SESSION['Usuario_Nombre'] : '';
+        $Usuario['usuario'] = !empty($_SESSION['Usuario_Usuario']) ? $_SESSION['Usuario_Usuario'] : '';
+        $Usuario['id_nivel'] = !empty($_SESSION['Usuario_Nivel']) ? $_SESSION['Usuario_Nivel'] : 0;
+        $Usuario['imagen'] = !empty($_SESSION['Usuario_Img']) ? $_SESSION['Usuario_Img'] : 'user.png';
         return $Usuario;
     }
 
@@ -201,13 +178,12 @@ function ObtenerPermisosListadoViajes($Usuario = null)
     );
 }
 
-function Listar_Choferes($vConexion = null)
+function Listar_Choferes($vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = array();
 
     $SQL = "SELECT id, apellido, nombre, dni FROM usuarios WHERE id_nivel = 3 AND activo = 1 ORDER BY apellido, nombre";
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs != false) {
         $i = 0;
@@ -224,9 +200,8 @@ function Listar_Choferes($vConexion = null)
     return $Listado;
 }
 
-function Listar_Transportes($vConexion = null)
+function Listar_Transportes($vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = array();
 
     $SQL = "SELECT t.id, m.denominacion AS marca, t.modelo, t.patente"
@@ -235,7 +210,7 @@ function Listar_Transportes($vConexion = null)
         . " AND t.disponible = 1"
         . " ORDER BY m.denominacion, t.modelo, t.patente";
 
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs != false) {
         $i = 0;
@@ -252,13 +227,12 @@ function Listar_Transportes($vConexion = null)
     return $Listado;
 }
 
-function Listar_Marcas($vConexion = null)
+function Listar_Marcas($vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = array();
 
     $SQL = "SELECT id, denominacion FROM marcas ORDER BY denominacion";
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs != false) {
         $i = 0;
@@ -316,13 +290,12 @@ function ConvertirFechaFormulario($Fecha)
     return sprintf('%04d-%02d-%02d', $Anio, $Mes, $Dia);
 }
 
-function Listar_Destinos($vConexion = null)
+function Listar_Destinos($vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = array();
 
     $SQL = "SELECT id, denominacion FROM destinos ORDER BY denominacion";
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs != false) {
         $i = 0;
@@ -337,9 +310,8 @@ function Listar_Destinos($vConexion = null)
     return $Listado;
 }
 
-function Insertar_Chofer($Datos, $vConexion = null)
+function Insertar_Chofer($Datos, $vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
 
     $Apellido = isset($Datos['apellido']) ? $Datos['apellido'] : '';
     $Nombre = isset($Datos['nombre']) ? $Datos['nombre'] : '';
@@ -350,22 +322,21 @@ function Insertar_Chofer($Datos, $vConexion = null)
     $SQL = "INSERT INTO usuarios (apellido, nombre, dni, usuario, clave, activo, id_nivel, fecha_creacion)"
         . " VALUES ('" . $Apellido . "', '" . $Nombre . "', '" . $Dni . "', '" . $Usuario . "', '" . $Clave . "', 1, 3, NOW())";
 
-    $Insertado = mysqli_query($Conexion, $SQL);
+    $Insertado = mysqli_query($vConexion, $SQL);
 
     if ($Insertado == false) {
         die('No se pudo ejecutar la inserción.');
     }
 
     return array(
-        'id' => mysqli_insert_id($Conexion),
+        'id' => mysqli_insert_id($vConexion),
         'usuario' => $Usuario,
         'clave' => $Clave,
     );
 }
 
-function Insertar_Transporte($Datos, $vConexion = null)
+function Insertar_Transporte($Datos, $vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
 
     $Marca = isset($Datos['marca_id']) ? $Datos['marca_id'] : 0;
     $Modelo = isset($Datos['modelo']) ? $Datos['modelo'] : '';
@@ -376,18 +347,17 @@ function Insertar_Transporte($Datos, $vConexion = null)
     $SQL = "INSERT INTO transportes (marca_id, modelo, patente, anio, disponible, fecha_creacion)"
         . " VALUES (" . $Marca . ", '" . $Modelo . "', '" . $Patente . "', " . $Anio . ", " . $Disponible . ", NOW())";
 
-    $Insertado = mysqli_query($Conexion, $SQL);
+    $Insertado = mysqli_query($vConexion, $SQL);
 
     if ($Insertado == false) {
         die('No se pudo ejecutar la inserción.');
     }
 
-    return mysqli_insert_id($Conexion);
+    return mysqli_insert_id($vConexion);
 }
 
-function Insertar_Viaje($Datos, $vConexion = null)
+function Insertar_Viaje($Datos, $vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
 
     $Chofer = isset($Datos['chofer_id']) ? $Datos['chofer_id'] : 0;
     $Transporte = isset($Datos['transporte_id']) ? $Datos['transporte_id'] : 0;
@@ -400,18 +370,17 @@ function Insertar_Viaje($Datos, $vConexion = null)
     $SQL = "INSERT INTO viajes (chofer_id, transporte_id, fecha_programada, destino_id, costo, porcentaje_chofer, creado_por, fecha_creacion)"
         . " VALUES (" . $Chofer . ", " . $Transporte . ", '" . $Fecha . "', " . $Destino . ", " . $Costo . ", " . $Porcentaje . ", " . $CreadoPor . ", NOW())";
 
-    $Insertado = mysqli_query($Conexion, $SQL);
+    $Insertado = mysqli_query($vConexion, $SQL);
 
     if ($Insertado == false) {
         die('No se pudo ejecutar la inserción.');
     }
 
-    return mysqli_insert_id($Conexion);
+    return mysqli_insert_id($vConexion);
 }
 
-function Listar_Viajes($ChoferId = null, $vConexion = null)
+function Listar_Viajes($vConexion, $ChoferId = null)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $Listado = array();
 
     $SQL = "SELECT v.id, v.fecha_programada, d.denominacion AS destino, v.costo, v.porcentaje_chofer,"
@@ -429,7 +398,7 @@ function Listar_Viajes($ChoferId = null, $vConexion = null)
 
     $SQL .= " ORDER BY v.fecha_programada, d.denominacion";
 
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs != false) {
         $i = 0;
@@ -481,11 +450,10 @@ function ValidarPorcentaje($Valor)
     return $Numero >= 0 && $Numero <= 100;
 }
 
-function ExisteUsuario($Usuario, $vConexion = null)
+function ExisteUsuario($Usuario, $vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $SQL = "SELECT id FROM usuarios WHERE usuario = '" . $Usuario . "'";
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs == false) {
         return false;
@@ -497,11 +465,10 @@ function ExisteUsuario($Usuario, $vConexion = null)
     return !empty($Existe);
 }
 
-function ExisteDNI($Dni, $vConexion = null)
+function ExisteDNI($Dni, $vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $SQL = "SELECT id FROM usuarios WHERE dni = '" . $Dni . "'";
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs == false) {
         return false;
@@ -513,11 +480,10 @@ function ExisteDNI($Dni, $vConexion = null)
     return !empty($Existe);
 }
 
-function ExistePatente($Patente, $vConexion = null)
+function ExistePatente($Patente, $vConexion)
 {
-    $Conexion = ObtenerConexionActiva($vConexion);
     $SQL = "SELECT id FROM transportes WHERE patente = '" . $Patente . "'";
-    $rs = mysqli_query($Conexion, $SQL);
+    $rs = mysqli_query($vConexion, $SQL);
 
     if ($rs == false) {
         return false;

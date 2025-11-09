@@ -3,13 +3,15 @@ require_once 'funciones/conexion.php';
 require_once 'funciones/funciones.php';
 RequiereSesion();
 
+$MiConexion = ConexionBD();
+
 $pageTitle = 'Listado de viajes registrados';
 $activePage = 'viajes_listado';
 
 $usuarioActual = ObtenerUsuarioEnSesion();
 $esChofer = isset($usuarioActual['id_nivel']) && (int) $usuarioActual['id_nivel'] === 3;
 $choferFiltradoId = $esChofer ? ($usuarioActual['id'] ?? null) : null; // Se determina si es necesario filtrar los viajes por el chofer autenticado.
-$viajes = Listar_Viajes($choferFiltradoId); // Se obtienen los viajes aplicando el filtro según el nivel del usuario.
+$viajes = Listar_Viajes($MiConexion, $choferFiltradoId); // Se obtienen los viajes aplicando el filtro según el nivel del usuario.
 $permisosListado = ObtenerPermisosListadoViajes($usuarioActual);
 $mostrarCosto = !empty($permisosListado['mostrar_costo']);
 $mostrarMontoChofer = !empty($permisosListado['mostrar_monto_chofer']);
