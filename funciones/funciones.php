@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/conexion.php';
+require_once 'funciones/conexion.php';
 
-if (session_status() === PHP_SESSION_NONE) {
+if (!isset($_SESSION)) {
     session_start();
 }
 

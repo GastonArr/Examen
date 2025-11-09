@@ -1,5 +1,7 @@
 <?php
-$pageTitle = $pageTitle ?? 'Panel de Administración';
+if (!isset($pageTitle)) {
+    $pageTitle = 'Panel de Administración';
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

@@ -13,8 +13,17 @@ $Mensaje = '';
 $usuario = '';
 
 if (!empty($_POST['BotonLogin'])) {
-    $usuario = strtolower(trim($_POST['usuario'] ?? ''));
-    $clave = trim($_POST['clave'] ?? '');
+    if (isset($_POST['usuario'])) {
+        $usuario = strtolower(trim($_POST['usuario']));
+    } else {
+        $usuario = '';
+    }
+
+    if (isset($_POST['clave'])) {
+        $clave = trim($_POST['clave']);
+    } else {
+        $clave = '';
+    }
 
     if ($usuario === '' || $clave === '') {
         $Mensaje = 'Debes ingresar el usuario y la clave.';
@@ -34,7 +43,7 @@ if (!empty($_POST['BotonLogin'])) {
     }
 }
 
-require_once __DIR__ . '/includes/header.php';
+require_once 'includes/header.php';
 ?>
 <main>
     <div class="container">
@@ -91,4 +100,4 @@ require_once __DIR__ . '/includes/header.php';
         </section>
     </div>
 </main>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

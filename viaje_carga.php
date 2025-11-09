@@ -15,8 +15,13 @@ $activePage = 'viaje_carga';
 $choferes = Listar_Choferes($MiConexion);
 $transportes = Listar_Transportes($MiConexion);
 $destinos = Listar_Destinos($MiConexion); // Se obtiene el listado de destinos para completar el selector correspondiente.
+$usuarioSesion = ObtenerUsuarioEnSesion();
+$creadoPorId = 0;
+if (isset($usuarioSesion['id'])) {
+    $creadoPorId = $usuarioSesion['id'];
+}
 
-$errors = [];
+$errors = array();
 $success = false;
 $choferId = '';
 $transporteId = '';
@@ -26,12 +31,41 @@ $costo = '';
 $porcentaje = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $choferId = $_POST['chofer_id'] ?? '';
-    $transporteId = $_POST['transporte_id'] ?? '';
-    $fechaProgramada = $_POST['fecha_programada'] ?? '';
-    $destinoId = $_POST['destino_id'] ?? ''; // Se captura el destino elegido en el formulario.
-    $costo = $_POST['costo'] ?? '';
-    $porcentaje = $_POST['porcentaje_chofer'] ?? '';
+    if (isset($_POST['chofer_id'])) {
+        $choferId = $_POST['chofer_id'];
+    } else {
+        $choferId = '';
+    }
+
+    if (isset($_POST['transporte_id'])) {
+        $transporteId = $_POST['transporte_id'];
+    } else {
+        $transporteId = '';
+    }
+
+    if (isset($_POST['fecha_programada'])) {
+        $fechaProgramada = $_POST['fecha_programada'];
+    } else {
+        $fechaProgramada = '';
+    }
+
+    if (isset($_POST['destino_id'])) { // Se captura el destino elegido en el formulario.
+        $destinoId = $_POST['destino_id'];
+    } else {
+        $destinoId = '';
+    }
+
+    if (isset($_POST['costo'])) {
+        $costo = $_POST['costo'];
+    } else {
+        $costo = '';
+    }
+
+    if (isset($_POST['porcentaje_chofer'])) {
+        $porcentaje = $_POST['porcentaje_chofer'];
+    } else {
+        $porcentaje = '';
+    }
 
     $choferValido = false; // Se prepara una bandera para verificar el chofer seleccionado.
     for ($i = 0; $i < count($choferes); $i++) { // Se recorren los choferes habilitados en busca del identificador enviado.
@@ -81,24 +115,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        Insertar_Viaje([
+        Insertar_Viaje(array(
             'chofer_id' => (int) $choferId,
             'transporte_id' => (int) $transporteId,
             'fecha_programada' => $fechaNormalizada,
             'destino_id' => (int) $destinoId, // Se envía el identificador del destino validado.
             'costo' => (float) $importeNormalizado,
             'porcentaje_chofer' => (int) $porcentaje,
-            'creado_por' => ObtenerUsuarioEnSesion()['id'] ?? null,
-        ], $MiConexion);
+            'creado_por' => $creadoPorId,
+        ), $MiConexion);
         $success = true;
         $choferId = $transporteId = $fechaProgramada = $destinoId = $costo = $porcentaje = ''; // Se limpian los campos para permitir cargar un nuevo viaje inmediatamente.
         $fechaNormalizada = null;
     }
 }
 
-require_once __DIR__ . '/includes/header.php';
-require_once __DIR__ . '/includes/topbar.php';
-require_once __DIR__ . '/includes/sidebar.php';
+require_once 'includes/header.php';
+require_once 'includes/topbar.php';
+require_once 'includes/sidebar.php';
 ?>
 <main id="main" class="main">
     <div class="pagetitle">
@@ -191,4 +225,4 @@ require_once __DIR__ . '/includes/sidebar.php';
         </div>
     </section>
 </main>
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>
