@@ -186,16 +186,6 @@ function EsChofer()
     return !empty($Usuario['id_nivel']) && (int) $Usuario['id_nivel'] === 3;
 }
 
-function Usuario_DenominacionNivel()
-{
-    return DenominacionNivel($_SESSION['Usuario_Nivel'] ?? null);
-}
-
-function Usuario_FuncionesPermitidas()
-{
-    return DescripcionFuncionesNivel($_SESSION['Usuario_Nivel'] ?? null);
-}
-
 function Listar_Choferes($vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
