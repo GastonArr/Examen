@@ -186,6 +186,21 @@ function EsChofer()
     return !empty($Usuario['id_nivel']) && $Usuario['id_nivel'] == 3;
 }
 
+function ObtenerPermisosListadoViajes($Usuario = null)
+{
+    if ($Usuario === null) {
+        $Usuario = ObtenerUsuarioEnSesion();
+    }
+
+    $Nivel = isset($Usuario['id_nivel']) ? (int) $Usuario['id_nivel'] : 0;
+
+    return array(
+        'mostrar_costo' => $Nivel !== 3,
+        'mostrar_monto_chofer' => $Nivel !== 2,
+        'mostrar_porcentaje_monto' => $Nivel !== 3,
+    );
+}
+
 function Listar_Choferes($vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
