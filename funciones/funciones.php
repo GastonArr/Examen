@@ -1,22 +1,13 @@
 <?php
-
 require_once __DIR__ . '/conexion.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!date_default_timezone_set('America/Argentina/Cordoba')) {
-    date_default_timezone_set('UTC');
-}
-
 function ObtenerConexionActiva($vConexion = null)
 {
-    if ($vConexion instanceof mysqli) {
-        return $vConexion;
-    }
-
-    if ($vConexion) {
+    if (!empty($vConexion)) {
         return $vConexion;
     }
 
@@ -32,37 +23,40 @@ function Redireccionar($Ruta)
 function DatosLogin($vUsuario, $vClave, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $Usuario = [];
+    $Usuario = array();
 
-    $UsuarioSQL = mysqli_real_escape_string($Conexion, $vUsuario);
-    $SQL = "SELECT u.id, u.apellido, u.nombre, u.usuario, u.clave, u.id_nivel, u.imagen, u.activo, " .
-        "n.denominacion AS nivel_nombre " .
-        "FROM usuarios u " .
-        "INNER JOIN niveles n ON n.id = u.id_nivel " .
-        "WHERE u.usuario = '" . $UsuarioSQL . "'";
+    $SQL = "SELECT U.id, U.apellido, U.nombre, U.usuario, U.clave, U.id_nivel, U.imagen, U.activo,"
+        . " N.denominacion AS NombreNivel"
+        . " FROM usuarios U, niveles N"
+        . " WHERE U.id_nivel = N.id"
+        . " AND U.usuario = '" . $vUsuario . "'"
+        . " AND U.clave = '" . $vClave . "'";
 
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
-    }
 
-    if ($registro = mysqli_fetch_assoc($rs)) {
-        $Usuario['ID'] = (int) $registro['id'];
-        $Usuario['APELLIDO'] = $registro['apellido'];
-        $Usuario['NOMBRE'] = $registro['nombre'];
-        $Usuario['USUARIO'] = $registro['usuario'];
-        $Usuario['CLAVE'] = $registro['clave'];
-        $Usuario['NIVEL'] = (int) $registro['id_nivel'];
-        $Usuario['NIVEL_NOMBRE'] = $registro['nivel_nombre'];
-        $Usuario['IMG'] = !empty($registro['imagen']) ? $registro['imagen'] : 'user.png';
-        $Usuario['ACTIVO'] = (int) $registro['activo'];
-        $Usuario['SALUDO'] = 'Hola';
-    }
+    if ($rs != false) {
+        $data = mysqli_fetch_array($rs);
 
-    mysqli_free_result($rs);
+        if (!empty($data)) {
+            $Usuario['ID'] = $data['id'];
+            $Usuario['APELLIDO'] = $data['apellido'];
+            $Usuario['NOMBRE'] = $data['nombre'];
+            $Usuario['USUARIO'] = $data['usuario'];
+            $Usuario['CLAVE'] = $data['clave'];
+            $Usuario['NIVEL'] = $data['id_nivel'];
+            $Usuario['NIVEL_NOMBRE'] = $data['NombreNivel'];
+            $Usuario['ACTIVO'] = $data['activo'];
 
-    if (empty($Usuario) || $Usuario['CLAVE'] !== $vClave || $Usuario['ACTIVO'] !== 1) {
-        return [];
+            if (empty($data['imagen'])) {
+                $Usuario['IMG'] = 'user.png';
+            } else {
+                $Usuario['IMG'] = $data['imagen'];
+            }
+
+            $Usuario['SALUDO'] = 'Hola';
+        }
+
+        mysqli_free_result($rs);
     }
 
     return $Usuario;
@@ -70,33 +64,30 @@ function DatosLogin($vUsuario, $vClave, $vConexion = null)
 
 function GuardarSesionUsuario($DatosUsuario)
 {
-    $_SESSION['Usuario_ID'] = $DatosUsuario['ID'] ?? null;
-    $_SESSION['Usuario_Nombre'] = $DatosUsuario['NOMBRE'] ?? null;
-    $_SESSION['Usuario_Apellido'] = $DatosUsuario['APELLIDO'] ?? null;
-    $_SESSION['Usuario_Usuario'] = $DatosUsuario['USUARIO'] ?? null;
-    $_SESSION['Usuario_Nivel'] = $DatosUsuario['NIVEL'] ?? null;
-    $_SESSION['Usuario_NombreNivel'] = $DatosUsuario['NIVEL_NOMBRE'] ?? null;
-    $_SESSION['Usuario_Img'] = $DatosUsuario['IMG'] ?? null;
-    $_SESSION['Usuario_Saludo'] = $DatosUsuario['SALUDO'] ?? null;
-    $_SESSION['Usuario_Activo'] = $DatosUsuario['ACTIVO'] ?? null;
+    $_SESSION['Usuario_ID'] = isset($DatosUsuario['ID']) ? $DatosUsuario['ID'] : null;
+    $_SESSION['Usuario_Nombre'] = isset($DatosUsuario['NOMBRE']) ? $DatosUsuario['NOMBRE'] : null;
+    $_SESSION['Usuario_Apellido'] = isset($DatosUsuario['APELLIDO']) ? $DatosUsuario['APELLIDO'] : null;
+    $_SESSION['Usuario_Usuario'] = isset($DatosUsuario['USUARIO']) ? $DatosUsuario['USUARIO'] : null;
+    $_SESSION['Usuario_Nivel'] = isset($DatosUsuario['NIVEL']) ? $DatosUsuario['NIVEL'] : null;
+    $_SESSION['Usuario_NombreNivel'] = isset($DatosUsuario['NIVEL_NOMBRE']) ? $DatosUsuario['NIVEL_NOMBRE'] : null;
+    $_SESSION['Usuario_Img'] = isset($DatosUsuario['IMG']) ? $DatosUsuario['IMG'] : 'user.png';
+    $_SESSION['Usuario_Saludo'] = isset($DatosUsuario['SALUDO']) ? $DatosUsuario['SALUDO'] : 'Hola';
+    $_SESSION['Usuario_Activo'] = isset($DatosUsuario['ACTIVO']) ? $DatosUsuario['ACTIVO'] : 0;
 
-    $_SESSION['user'] = [
-        'id' => $DatosUsuario['ID'] ?? null,
-        'apellido' => $DatosUsuario['APELLIDO'] ?? null,
-        'nombre' => $DatosUsuario['NOMBRE'] ?? null,
-        'usuario' => $DatosUsuario['USUARIO'] ?? null,
-        'id_nivel' => $DatosUsuario['NIVEL'] ?? null,
-        'imagen' => $DatosUsuario['IMG'] ?? null,
-    ];
+    $_SESSION['user'] = array(
+        'id' => $_SESSION['Usuario_ID'],
+        'apellido' => $_SESSION['Usuario_Apellido'],
+        'nombre' => $_SESSION['Usuario_Nombre'],
+        'usuario' => $_SESSION['Usuario_Usuario'],
+        'id_nivel' => $_SESSION['Usuario_Nivel'],
+        'imagen' => $_SESSION['Usuario_Img'],
+    );
 }
 
 function CerrarSesionUsuario()
 {
-    $_SESSION = [];
-
-    if (session_status() !== PHP_SESSION_NONE) {
-        session_destroy();
-    }
+    $_SESSION = array();
+    session_destroy();
 }
 
 function ObtenerUsuarioEnSesion()
@@ -106,107 +97,114 @@ function ObtenerUsuarioEnSesion()
     }
 
     if (!empty($_SESSION['Usuario_ID'])) {
-        return [
-            'id' => (int) $_SESSION['Usuario_ID'],
-            'apellido' => $_SESSION['Usuario_Apellido'] ?? '',
-            'nombre' => $_SESSION['Usuario_Nombre'] ?? '',
-            'usuario' => $_SESSION['Usuario_Usuario'] ?? '',
-            'id_nivel' => isset($_SESSION['Usuario_Nivel']) ? (int) $_SESSION['Usuario_Nivel'] : null,
-            'imagen' => $_SESSION['Usuario_Img'] ?? null,
-        ];
+        $Usuario = array();
+        $Usuario['id'] = $_SESSION['Usuario_ID'];
+        $Usuario['apellido'] = isset($_SESSION['Usuario_Apellido']) ? $_SESSION['Usuario_Apellido'] : '';
+        $Usuario['nombre'] = isset($_SESSION['Usuario_Nombre']) ? $_SESSION['Usuario_Nombre'] : '';
+        $Usuario['usuario'] = isset($_SESSION['Usuario_Usuario']) ? $_SESSION['Usuario_Usuario'] : '';
+        $Usuario['id_nivel'] = isset($_SESSION['Usuario_Nivel']) ? $_SESSION['Usuario_Nivel'] : '';
+        $Usuario['imagen'] = isset($_SESSION['Usuario_Img']) ? $_SESSION['Usuario_Img'] : 'user.png';
+        return $Usuario;
     }
 
-    return null;
+    return array();
 }
 
 function RequiereSesion()
 {
-    if (!ObtenerUsuarioEnSesion()) {
+    if (empty($_SESSION['Usuario_ID'])) {
         Redireccionar('login.php');
     }
 }
 
 function UsuarioEstaLogueado()
 {
-    return ObtenerUsuarioEnSesion() !== null;
+    return !empty($_SESSION['Usuario_ID']);
 }
 
 function NombreCompletoUsuario($Usuario)
 {
-    $Apellido = !empty($Usuario['apellido']) ? $Usuario['apellido'] : '';
-    $Nombre = !empty($Usuario['nombre']) ? $Usuario['nombre'] : '';
-    $NombreCompleto = trim($Apellido . ', ' . $Nombre);
+    $Apellido = isset($Usuario['apellido']) ? $Usuario['apellido'] : '';
+    $Nombre = isset($Usuario['nombre']) ? $Usuario['nombre'] : '';
 
-    return $NombreCompleto === ',' ? '' : $NombreCompleto;
+    if ($Apellido != '' && $Nombre != '') {
+        return $Apellido . ', ' . $Nombre;
+    }
+
+    return trim($Apellido . ' ' . $Nombre);
 }
 
 function DenominacionNivel($IdNivel)
 {
-    switch ((int) $IdNivel) {
-        case 1:
-            return 'Administrador';
-        case 2:
-            return 'Operador';
-        case 3:
-            return 'Chofer';
-        default:
-            return 'Usuario';
+    if ($IdNivel == 1) {
+        return 'Administrador';
     }
+
+    if ($IdNivel == 2) {
+        return 'Operador';
+    }
+
+    if ($IdNivel == 3) {
+        return 'Chofer';
+    }
+
+    return 'Usuario';
 }
 
 function DescripcionFuncionesNivel($IdNivel)
 {
-    switch ((int) $IdNivel) {
-        case 1:
-            return 'transportes, choferes y viajes';
-        case 2:
-            return 'transportes y viajes';
-        case 3:
-            return 'el seguimiento de los viajes asignados';
-        default:
-            return 'la información disponible en el panel';
+    if ($IdNivel == 1) {
+        return 'transportes, choferes y viajes';
     }
+
+    if ($IdNivel == 2) {
+        return 'transportes y viajes';
+    }
+
+    if ($IdNivel == 3) {
+        return 'el seguimiento de los viajes asignados';
+    }
+
+    return 'la información disponible en el panel';
 }
 
 function EsAdministrador()
 {
     $Usuario = ObtenerUsuarioEnSesion();
-    return !empty($Usuario['id_nivel']) && (int) $Usuario['id_nivel'] === 1;
+    return !empty($Usuario['id_nivel']) && $Usuario['id_nivel'] == 1;
 }
 
 function EsOperador()
 {
     $Usuario = ObtenerUsuarioEnSesion();
-    return !empty($Usuario['id_nivel']) && (int) $Usuario['id_nivel'] === 2;
+    return !empty($Usuario['id_nivel']) && $Usuario['id_nivel'] == 2;
 }
 
 function EsChofer()
 {
     $Usuario = ObtenerUsuarioEnSesion();
-    return !empty($Usuario['id_nivel']) && (int) $Usuario['id_nivel'] === 3;
+    return !empty($Usuario['id_nivel']) && $Usuario['id_nivel'] == 3;
 }
 
 function Listar_Choferes($vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $Listado = [];
+    $Listado = array();
 
-    $SQL = "SELECT id, apellido, nombre, dni FROM usuarios WHERE id_nivel = 3 AND activo = 1 ORDER BY apellido ASC, nombre ASC";
+    $SQL = "SELECT id, apellido, nombre, dni FROM usuarios WHERE id_nivel = 3 AND activo = 1 ORDER BY apellido, nombre";
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
-    }
 
-    while ($data = mysqli_fetch_assoc($rs)) {
-        $Fila = [];
-        $Fila['id'] = (int) $data['id'];
-        $Fila['apellido'] = $data['apellido'];
-        $Fila['nombre'] = $data['nombre'];
-        $Fila['dni'] = $data['dni'];
-        $Listado[] = $Fila;
+    if ($rs != false) {
+        $i = 0;
+        while ($data = mysqli_fetch_array($rs)) {
+            $Listado[$i]['id'] = $data['id'];
+            $Listado[$i]['apellido'] = $data['apellido'];
+            $Listado[$i]['nombre'] = $data['nombre'];
+            $Listado[$i]['dni'] = $data['dni'];
+            $i++;
+        }
+        mysqli_free_result($rs);
     }
-
-    mysqli_free_result($rs);
 
     return $Listado;
 }
@@ -214,26 +212,27 @@ function Listar_Choferes($vConexion = null)
 function Listar_Transportes($vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $Listado = [];
+    $Listado = array();
 
-    $SQL = "SELECT t.id, m.denominacion AS marca, t.modelo, t.patente FROM transportes t " .
-        "INNER JOIN marcas m ON m.id = t.marca_id " .
-        "WHERE t.disponible = 1 ORDER BY m.denominacion ASC, t.modelo ASC, t.patente ASC";
+    $SQL = "SELECT t.id, m.denominacion AS marca, t.modelo, t.patente"
+        . " FROM transportes t, marcas m"
+        . " WHERE m.id = t.marca_id"
+        . " AND t.disponible = 1"
+        . " ORDER BY m.denominacion, t.modelo, t.patente";
+
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
-    }
 
-    while ($data = mysqli_fetch_assoc($rs)) {
-        $Fila = [];
-        $Fila['id'] = (int) $data['id'];
-        $Fila['marca'] = $data['marca'];
-        $Fila['modelo'] = $data['modelo'];
-        $Fila['patente'] = $data['patente'];
-        $Listado[] = $Fila;
+    if ($rs != false) {
+        $i = 0;
+        while ($data = mysqli_fetch_array($rs)) {
+            $Listado[$i]['id'] = $data['id'];
+            $Listado[$i]['marca'] = $data['marca'];
+            $Listado[$i]['modelo'] = $data['modelo'];
+            $Listado[$i]['patente'] = $data['patente'];
+            $i++;
+        }
+        mysqli_free_result($rs);
     }
-
-    mysqli_free_result($rs);
 
     return $Listado;
 }
@@ -241,48 +240,24 @@ function Listar_Transportes($vConexion = null)
 function Listar_Marcas($vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $Listado = [];
+    $Listado = array();
 
-    $SQL = "SELECT id, denominacion FROM marcas ORDER BY denominacion ASC";
+    $SQL = "SELECT id, denominacion FROM marcas ORDER BY denominacion";
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
-    }
 
-    while ($data = mysqli_fetch_assoc($rs)) {
-        $Fila = [];
-        $Fila['id'] = (int) $data['id'];
-        $Fila['denominacion'] = $data['denominacion'];
-        $Listado[] = $Fila;
+    if ($rs != false) {
+        $i = 0;
+        while ($data = mysqli_fetch_array($rs)) {
+            $Listado[$i]['id'] = $data['id'];
+            $Listado[$i]['denominacion'] = $data['denominacion'];
+            $i++;
+        }
+        mysqli_free_result($rs);
     }
-
-    mysqli_free_result($rs);
 
     return $Listado;
 }
 
-function Listar_Destinos($vConexion = null)
-{
-    $Conexion = ObtenerConexionActiva($vConexion);
-    $Listado = [];
-
-    $SQL = "SELECT id, denominacion FROM destinos ORDER BY denominacion ASC";
-    $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
-    }
-
-    while ($data = mysqli_fetch_assoc($rs)) {
-        $Fila = [];
-        $Fila['id'] = (int) $data['id'];
-        $Fila['denominacion'] = $data['denominacion'];
-        $Listado[] = $Fila;
-    }
-
-    mysqli_free_result($rs);
-
-    return $Listado;
-}
 
 function NormalizarImporte($Valor)
 {
@@ -304,12 +279,14 @@ function NormalizarImporte($Valor)
 function ConvertirFechaFormulario($Fecha)
 {
     $Fecha = trim($Fecha);
+
     if ($Fecha === '') {
         return null;
     }
 
     $Partes = explode('/', $Fecha);
-    if (count($Partes) !== 3) {
+
+    if (count($Partes) != 3) {
         return null;
     }
 
@@ -324,45 +301,69 @@ function ConvertirFechaFormulario($Fecha)
     return sprintf('%04d-%02d-%02d', $Anio, $Mes, $Dia);
 }
 
+function Listar_Destinos($vConexion = null)
+{
+    $Conexion = ObtenerConexionActiva($vConexion);
+    $Listado = array();
+
+    $SQL = "SELECT id, denominacion FROM destinos ORDER BY denominacion";
+    $rs = mysqli_query($Conexion, $SQL);
+
+    if ($rs != false) {
+        $i = 0;
+        while ($data = mysqli_fetch_array($rs)) {
+            $Listado[$i]['id'] = $data['id'];
+            $Listado[$i]['denominacion'] = $data['denominacion'];
+            $i++;
+        }
+        mysqli_free_result($rs);
+    }
+
+    return $Listado;
+}
+
 function Insertar_Chofer($Datos, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
 
-    $Apellido = mysqli_real_escape_string($Conexion, trim($Datos['apellido'] ?? ''));
-    $Nombre = mysqli_real_escape_string($Conexion, trim($Datos['nombre'] ?? ''));
-    $Dni = mysqli_real_escape_string($Conexion, trim($Datos['dni'] ?? ''));
-    $Usuario = mysqli_real_escape_string($Conexion, strtolower(trim($Datos['usuario'] ?? '')));
-    $Clave = mysqli_real_escape_string($Conexion, trim($Datos['clave'] ?? ''));
+    $Apellido = isset($Datos['apellido']) ? $Datos['apellido'] : '';
+    $Nombre = isset($Datos['nombre']) ? $Datos['nombre'] : '';
+    $Dni = isset($Datos['dni']) ? $Datos['dni'] : '';
+    $Usuario = isset($Datos['usuario']) ? strtolower($Datos['usuario']) : '';
+    $Clave = isset($Datos['clave']) ? $Datos['clave'] : '';
 
-    $SQL = "INSERT INTO usuarios (apellido, nombre, dni, usuario, clave, activo, id_nivel, fecha_creacion) VALUES (" .
-        "'" . $Apellido . "', '" . $Nombre . "', '" . $Dni . "', '" . $Usuario . "', '" . $Clave . "', 1, 3, NOW())";
+    $SQL = "INSERT INTO usuarios (apellido, nombre, dni, usuario, clave, activo, id_nivel, fecha_creacion)"
+        . " VALUES ('" . $Apellido . "', '" . $Nombre . "', '" . $Dni . "', '" . $Usuario . "', '" . $Clave . "', 1, 3, NOW())";
 
-    if (!mysqli_query($Conexion, $SQL)) {
+    $Insertado = mysqli_query($Conexion, $SQL);
+
+    if ($Insertado == false) {
         die('No se pudo ejecutar la inserción.');
     }
 
-    return [
+    return array(
         'id' => mysqli_insert_id($Conexion),
         'usuario' => $Usuario,
         'clave' => $Clave,
-    ];
+    );
 }
 
 function Insertar_Transporte($Datos, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
 
-    $Marca = isset($Datos['marca_id']) ? (int) $Datos['marca_id'] : 0;
-    $Modelo = mysqli_real_escape_string($Conexion, trim($Datos['modelo'] ?? ''));
-    $Patente = mysqli_real_escape_string($Conexion, trim($Datos['patente'] ?? ''));
-    $Anio = isset($Datos['anio']) ? (int) $Datos['anio'] : 0;
-    $Disponible = isset($Datos['disponible']) ? (int) $Datos['disponible'] : 0;
+    $Marca = isset($Datos['marca_id']) ? $Datos['marca_id'] : 0;
+    $Modelo = isset($Datos['modelo']) ? $Datos['modelo'] : '';
+    $Patente = isset($Datos['patente']) ? $Datos['patente'] : '';
+    $Anio = isset($Datos['anio']) ? $Datos['anio'] : 0;
+    $Disponible = isset($Datos['disponible']) ? $Datos['disponible'] : 0;
 
+    $SQL = "INSERT INTO transportes (marca_id, modelo, patente, anio, disponible, fecha_creacion)"
+        . " VALUES (" . $Marca . ", '" . $Modelo . "', '" . $Patente . "', " . $Anio . ", " . $Disponible . ", NOW())";
 
-    $SQL = "INSERT INTO transportes (marca_id, modelo, patente, anio, disponible, fecha_creacion) VALUES (" .
-        $Marca . ", '" . $Modelo . "', '" . $Patente . "', " . $Anio . ", " . $Disponible . ", NOW())";
+    $Insertado = mysqli_query($Conexion, $SQL);
 
-    if (!mysqli_query($Conexion, $SQL)) {
+    if ($Insertado == false) {
         die('No se pudo ejecutar la inserción.');
     }
 
@@ -373,18 +374,20 @@ function Insertar_Viaje($Datos, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
 
-    $Chofer = isset($Datos['chofer_id']) ? (int) $Datos['chofer_id'] : 0;
-    $Transporte = isset($Datos['transporte_id']) ? (int) $Datos['transporte_id'] : 0;
-    $Fecha = mysqli_real_escape_string($Conexion, trim($Datos['fecha_programada'] ?? ''));
-    $Destino = isset($Datos['destino_id']) ? (int) $Datos['destino_id'] : 0;
-    $Costo = isset($Datos['costo']) ? (float) $Datos['costo'] : 0;
-    $Porcentaje = isset($Datos['porcentaje_chofer']) ? (int) $Datos['porcentaje_chofer'] : 0;
-    $CreadoPor = !empty($Datos['creado_por']) ? (int) $Datos['creado_por'] : 'NULL';
+    $Chofer = isset($Datos['chofer_id']) ? $Datos['chofer_id'] : 0;
+    $Transporte = isset($Datos['transporte_id']) ? $Datos['transporte_id'] : 0;
+    $Fecha = isset($Datos['fecha_programada']) ? $Datos['fecha_programada'] : '';
+    $Destino = isset($Datos['destino_id']) ? $Datos['destino_id'] : 0;
+    $Costo = isset($Datos['costo']) ? $Datos['costo'] : 0;
+    $Porcentaje = isset($Datos['porcentaje_chofer']) ? $Datos['porcentaje_chofer'] : 0;
+    $CreadoPor = !empty($Datos['creado_por']) ? $Datos['creado_por'] : 'NULL';
 
-    $SQL = "INSERT INTO viajes (chofer_id, transporte_id, fecha_programada, destino_id, costo, porcentaje_chofer, creado_por, fecha_creacion) " .
-        "VALUES (" . $Chofer . ", " . $Transporte . ", '" . $Fecha . "', " . $Destino . ", " . $Costo . ", " . $Porcentaje . ", " . $CreadoPor . ", NOW())";
+    $SQL = "INSERT INTO viajes (chofer_id, transporte_id, fecha_programada, destino_id, costo, porcentaje_chofer, creado_por, fecha_creacion)"
+        . " VALUES (" . $Chofer . ", " . $Transporte . ", '" . $Fecha . "', " . $Destino . ", " . $Costo . ", " . $Porcentaje . ", " . $CreadoPor . ", NOW())";
 
-    if (!mysqli_query($Conexion, $SQL)) {
+    $Insertado = mysqli_query($Conexion, $SQL);
+
+    if ($Insertado == false) {
         die('No se pudo ejecutar la inserción.');
     }
 
@@ -394,58 +397,56 @@ function Insertar_Viaje($Datos, $vConexion = null)
 function Listar_Viajes($ChoferId = null, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $Listado = [];
+    $Listado = array();
 
-    $SQL = "SELECT v.id, v.fecha_programada, d.denominacion AS destino, v.costo, v.porcentaje_chofer, " .
-        "c.apellido AS chofer_apellido, c.nombre AS chofer_nombre, c.dni AS chofer_dni, " .
-        "m.denominacion AS marca, t.modelo, t.patente " .
-        "FROM viajes v " .
-        "INNER JOIN usuarios c ON c.id = v.chofer_id " .
-        "INNER JOIN transportes t ON t.id = v.transporte_id " .
-        "INNER JOIN marcas m ON m.id = t.marca_id " .
-        "INNER JOIN destinos d ON d.id = v.destino_id";
+    $SQL = "SELECT v.id, v.fecha_programada, d.denominacion AS destino, v.costo, v.porcentaje_chofer,"
+        . " c.apellido AS chofer_apellido, c.nombre AS chofer_nombre, c.dni AS chofer_dni,"
+        . " m.denominacion AS marca, t.modelo, t.patente"
+        . " FROM viajes v, usuarios c, transportes t, marcas m, destinos d"
+        . " WHERE c.id = v.chofer_id"
+        . " AND t.id = v.transporte_id"
+        . " AND m.id = t.marca_id"
+        . " AND d.id = v.destino_id";
 
     if (!empty($ChoferId)) {
-        $SQL .= " WHERE v.chofer_id = " . (int) $ChoferId;
+        $SQL .= " AND v.chofer_id = " . $ChoferId;
     }
 
-    $SQL .= " ORDER BY v.fecha_programada ASC, d.denominacion ASC";
+    $SQL .= " ORDER BY v.fecha_programada, d.denominacion";
 
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
-    }
 
-    while ($data = mysqli_fetch_assoc($rs)) {
-        $Fila = [];
-        $Fila['id'] = (int) $data['id'];
-        $Fila['fecha_programada'] = $data['fecha_programada'];
-        $Fila['destino'] = $data['destino'];
-        $Fila['costo'] = (float) $data['costo'];
-        $Fila['porcentaje_chofer'] = (int) $data['porcentaje_chofer'];
-        $Fila['chofer_apellido'] = $data['chofer_apellido'];
-        $Fila['chofer_nombre'] = $data['chofer_nombre'];
-        $Fila['chofer_dni'] = $data['chofer_dni'];
-        $Fila['marca'] = $data['marca'];
-        $Fila['modelo'] = $data['modelo'];
-        $Fila['patente'] = $data['patente'];
-        $Listado[] = $Fila;
+    if ($rs != false) {
+        $i = 0;
+        while ($data = mysqli_fetch_array($rs)) {
+            $Listado[$i]['id'] = $data['id'];
+            $Listado[$i]['fecha_programada'] = $data['fecha_programada'];
+            $Listado[$i]['destino'] = $data['destino'];
+            $Listado[$i]['costo'] = $data['costo'];
+            $Listado[$i]['porcentaje_chofer'] = $data['porcentaje_chofer'];
+            $Listado[$i]['chofer_apellido'] = $data['chofer_apellido'];
+            $Listado[$i]['chofer_nombre'] = $data['chofer_nombre'];
+            $Listado[$i]['chofer_dni'] = $data['chofer_dni'];
+            $Listado[$i]['marca'] = $data['marca'];
+            $Listado[$i]['modelo'] = $data['modelo'];
+            $Listado[$i]['patente'] = $data['patente'];
+            $i++;
+        }
+        mysqli_free_result($rs);
     }
-
-    mysqli_free_result($rs);
 
     return $Listado;
 }
 
 function CampoRequerido($Valor)
 {
-    return trim($Valor) !== '';
+    return trim($Valor) != '';
 }
 
 function ValidarDNI($Dni)
 {
     $Dni = trim($Dni);
-    return ctype_digit($Dni) && strlen($Dni) >= 7 && strlen($Dni) <= 8;
+    return $Dni != '' && ctype_digit($Dni) && strlen($Dni) >= 7 && strlen($Dni) <= 8;
 }
 
 function ValidarPorcentaje($Valor)
@@ -467,62 +468,60 @@ function ValidarPorcentaje($Valor)
 function ExisteUsuario($Usuario, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $UsuarioSQL = mysqli_real_escape_string($Conexion, $Usuario);
-    $SQL = "SELECT id FROM usuarios WHERE usuario = '" . $UsuarioSQL . "'";
-
+    $SQL = "SELECT id FROM usuarios WHERE usuario = '" . $Usuario . "'";
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
+
+    if ($rs == false) {
+        return false;
     }
 
-    $Existe = mysqli_fetch_assoc($rs) ? true : false;
+    $Existe = mysqli_fetch_array($rs);
     mysqli_free_result($rs);
 
-    return $Existe;
+    return !empty($Existe);
 }
 
 function ExisteDNI($Dni, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $DniSQL = mysqli_real_escape_string($Conexion, $Dni);
-    $SQL = "SELECT id FROM usuarios WHERE dni = '" . $DniSQL . "'";
-
+    $SQL = "SELECT id FROM usuarios WHERE dni = '" . $Dni . "'";
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
+
+    if ($rs == false) {
+        return false;
     }
 
-    $Existe = mysqli_fetch_assoc($rs) ? true : false;
+    $Existe = mysqli_fetch_array($rs);
     mysqli_free_result($rs);
 
-    return $Existe;
+    return !empty($Existe);
 }
 
 function ExistePatente($Patente, $vConexion = null)
 {
     $Conexion = ObtenerConexionActiva($vConexion);
-    $PatenteSQL = mysqli_real_escape_string($Conexion, $Patente);
-    $SQL = "SELECT id FROM transportes WHERE patente = '" . $PatenteSQL . "'";
-
+    $SQL = "SELECT id FROM transportes WHERE patente = '" . $Patente . "'";
     $rs = mysqli_query($Conexion, $SQL);
-    if ($rs === false) {
-        die('No se pudo ejecutar la consulta.');
+
+    if ($rs == false) {
+        return false;
     }
 
-    $Existe = mysqli_fetch_assoc($rs) ? true : false;
+    $Existe = mysqli_fetch_array($rs);
     mysqli_free_result($rs);
 
-    return $Existe;
+    return !empty($Existe);
 }
 
 function FormatearFechaEspaniol($Fecha)
 {
-    if (empty($Fecha)) {
+    if ($Fecha == '') {
         return '';
     }
 
     $Timestamp = strtotime($Fecha);
-    if ($Timestamp === false) {
+
+    if ($Timestamp == false) {
         return '';
     }
 
@@ -532,7 +531,8 @@ function FormatearFechaEspaniol($Fecha)
 function ObtenerClaseFila($FechaViaje)
 {
     $Timestamp = strtotime($FechaViaje);
-    if ($Timestamp === false) {
+
+    if ($Timestamp == false) {
         return '';
     }
 
@@ -544,11 +544,11 @@ function ObtenerClaseFila($FechaViaje)
         return 'fila-realizado';
     }
 
-    if ($FechaNormalizada === $Hoy) {
+    if ($FechaNormalizada == $Hoy) {
         return 'fila-hoy';
     }
 
-    if ($FechaNormalizada === $Maniana) {
+    if ($FechaNormalizada == $Maniana) {
         return 'fila-maniana';
     }
 

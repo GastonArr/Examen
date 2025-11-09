@@ -7,30 +7,27 @@ if (UsuarioEstaLogueado()) {
 }
 
 $pageTitle = 'Panel de Administración - Login';
-$errors = [];
+$Mensaje = '';
 $usuario = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (!empty($_POST['BotonLogin'])) {
     $usuario = strtolower(trim($_POST['usuario'] ?? ''));
     $clave = trim($_POST['clave'] ?? '');
 
-    if (!CampoRequerido($usuario)) {
-        $errors[] = 'El usuario es obligatorio.';
-    }
+    if ($usuario === '' || $clave === '') {
+        $Mensaje = 'Debes ingresar el usuario y la clave.';
+    } else {
+        $UsuarioLogueado = DatosLogin($usuario, $clave);
 
-    if (!CampoRequerido($clave)) {
-        $errors[] = 'La clave es obligatoria.';
-    } elseif (strlen($clave) < 5) {
-        $errors[] = 'La clave debe tener al menos 5 caracteres.';
-    }
-
-    if (!$errors) {
-        $datosUsuario = DatosLogin($usuario, $clave);
-        if (!empty($datosUsuario)) {
-            GuardarSesionUsuario($datosUsuario);
-            Redireccionar('index.php');
+        if (!empty($UsuarioLogueado)) {
+            if (isset($UsuarioLogueado['ACTIVO']) && $UsuarioLogueado['ACTIVO'] == 0) {
+                $Mensaje = 'Ud. no se encuentra activo en el sistema.';
+            } else {
+                GuardarSesionUsuario($UsuarioLogueado);
+                Redireccionar('index.php');
+            }
         } else {
-            $errors[] = 'Los datos son incorrectos. Intenta nuevamente.';
+            $Mensaje = 'Datos incorrectos, ingresa nuevamente.';
         }
     }
 }
@@ -55,17 +52,14 @@ require_once __DIR__ . '/includes/header.php';
                                     <h5 class="card-title text-center pb-0 fs-4">Ingresa tu cuenta</h5>
                                     <p class="text-center small">Ingresa tus datos de usuario y clave</p>
                                 </div>
-                                <div class="alert alert-info" role="alert">
-                                    <i class="bi bi-info-circle me-1"></i> Los campos indicados con (*) son requeridos
-                                </div>
-                                <?php if ($errors): ?>
+                                <?php if (!empty($Mensaje)): ?>
                                     <div class="alert alert-warning" role="alert">
                                         <i class="bi bi-exclamation-triangle me-1"></i>
-                                        <ul class="mb-0">
-                                            <?php foreach ($errors as $error): ?>
-                                                <li><?php echo htmlspecialchars($error); ?></li>
-                                            <?php endforeach; ?>
-                                        </ul>
+                                        <?php echo htmlspecialchars($Mensaje); ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="alert alert-info" role="alert">
+                                        <i class="bi bi-info-circle me-1"></i> Los campos indicados con (*) son requeridos
                                     </div>
                                 <?php endif; ?>
                                 <form class="row g-3" method="post" action="" novalidate>
@@ -73,7 +67,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <label for="usuario" class="form-label">Usuario (*)</label>
                                         <div class="input-group has-validation">
                                             <span class="input-group-text" id="inputGroupPrepend">@</span>
-                                            <input type="text" name="usuario" class="form-control" id="usuario" value="<?php echo htmlspecialchars($usuario ?? ''); ?>" required>
+                                            <input type="text" name="usuario" class="form-control" id="usuario" value="<?php echo htmlspecialchars($usuario); ?>" required>
                                         </div>
                                     </div>
                                     <div class="col-12">
@@ -81,7 +75,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <input type="password" name="clave" class="form-control" id="clave" required>
                                     </div>
                                     <div class="col-12">
-                                        <button class="btn btn-primary w-100" type="submit">Login</button>
+                                        <button class="btn btn-primary w-100" type="submit" name="BotonLogin" value="Login">Login</button>
                                     </div>
                                 </form>
                             </div>
