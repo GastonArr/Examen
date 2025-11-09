@@ -6,6 +6,8 @@ if (UsuarioEstaLogueado()) {
     Redireccionar('index.php');
 }
 
+$MiConexion = ConexionBD();
+
 $pageTitle = 'Panel de Administración - Login';
 $Mensaje = '';
 $usuario = '';
@@ -17,7 +19,7 @@ if (!empty($_POST['BotonLogin'])) {
     if ($usuario === '' || $clave === '') {
         $Mensaje = 'Debes ingresar el usuario y la clave.';
     } else {
-        $UsuarioLogueado = DatosLogin($usuario, $clave);
+        $UsuarioLogueado = DatosLogin($usuario, $clave, $MiConexion);
 
         if (!empty($UsuarioLogueado)) {
             if (isset($UsuarioLogueado['ACTIVO']) && $UsuarioLogueado['ACTIVO'] == 0) {

@@ -7,6 +7,8 @@ if (!EsAdministrador()) { // Se verifica que solamente los administradores pueda
     Redireccionar('index.php'); // Si el usuario no es administrador se lo redirige al panel principal para impedir el acceso.
 }
 
+$MiConexion = ConexionBD();
+
 $pageTitle = 'Registrar un nuevo chofer';
 $activePage = 'choferes';
 
@@ -38,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'El DNI es obligatorio.';
     } elseif (!ValidarDNI($dni)) {
         $errors[] = 'El DNI debe tener 7 u 8 dígitos numéricos.';
-    } elseif (ExisteDNI($dni)) {
+    } elseif (ExisteDNI($dni, $MiConexion)) {
         $errors[] = 'El DNI ingresado ya se encuentra registrado.';
     }
 
@@ -62,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if (!$errors && ExisteUsuario($usuarioForm)) {
+    if (!$errors && ExisteUsuario($usuarioForm, $MiConexion)) {
         $errors[] = 'El usuario ingresado ya existe.';
     }
 
@@ -79,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'dni' => $dni, // Se envía el DNI confirmado como único.
             'usuario' => $usuarioForm, // Se envía el usuario validado.
             'clave' => $claveForm, // Se envía la clave validada.
-        ]);
+        ], $MiConexion);
         $success = true; // Se marca el registro como exitoso para mostrar el mensaje correspondiente.
         $successData = $resultado; // Se almacenan los datos retornados (usuario y clave final) para comunicarlos al administrador.
         $apellido = $nombre = $dni = $usuarioForm = $claveForm = '';

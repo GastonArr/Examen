@@ -7,12 +7,14 @@ if (EsChofer()) { // Se impide que los choferes accedan a la carga de viajes seg
     Redireccionar('viajes_listado.php'); // Se redirige al listado para que solo vean sus propios viajes.
 }
 
+$MiConexion = ConexionBD();
+
 $pageTitle = 'Registrar un nuevo viaje';
 $activePage = 'viaje_carga';
 
-$choferes = Listar_Choferes();
-$transportes = Listar_Transportes();
-$destinos = Listar_Destinos(); // Se obtiene el listado de destinos para completar el selector correspondiente.
+$choferes = Listar_Choferes($MiConexion);
+$transportes = Listar_Transportes($MiConexion);
+$destinos = Listar_Destinos($MiConexion); // Se obtiene el listado de destinos para completar el selector correspondiente.
 
 $errors = [];
 $success = false;
@@ -87,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'costo' => (float) $importeNormalizado,
             'porcentaje_chofer' => (int) $porcentaje,
             'creado_por' => ObtenerUsuarioEnSesion()['id'] ?? null,
-        ]);
+        ], $MiConexion);
         $success = true;
         $choferId = $transporteId = $fechaProgramada = $destinoId = $costo = $porcentaje = ''; // Se limpian los campos para permitir cargar un nuevo viaje inmediatamente.
         $fechaNormalizada = null;

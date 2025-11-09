@@ -7,10 +7,12 @@ if (EsChofer()) { // Se controla que los choferes no puedan cargar transportes c
     Redireccionar('index.php'); // En caso de que un chofer llegue a la URL, se lo redirige al panel principal.
 }
 
+$MiConexion = ConexionBD();
+
 $pageTitle = 'Registrar un nuevo transporte'; // Se define el título de la página para el encabezado HTML.
 $activePage = 'camion_carga'; // Se establece el identificador de la página activa para resaltar el menú lateral correspondiente.
 
-$marcas = Listar_Marcas(); // Se obtienen todas las marcas registradas para alimentar el selector del formulario.
+$marcas = Listar_Marcas($MiConexion); // Se obtienen todas las marcas registradas para alimentar el selector del formulario.
 
 $errors = []; // Se inicializa el arreglo que almacenará los mensajes de validación.
 $success = false; // Se prepara un indicador para mostrar el mensaje de guardado exitoso.
@@ -67,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
         }
     }
 
-    if (!$errors && ExistePatente($patente)) { // Se verifica que la patente no esté duplicada en la base de datos.
+    if (!$errors && ExistePatente($patente, $MiConexion)) { // Se verifica que la patente no esté duplicada en la base de datos.
         $errors[] = 'La patente ingresada ya se encuentra registrada.'; // Se detiene el proceso avisando que el dato ya existe.
     }
 
@@ -80,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Se detecta el envío del formula
             'patente' => $patente, // Se envía la patente normalizada.
             'anio' => $anioNormalizado, // Se envía el año validado o cero si no se informó.
             'disponible' => $disponibleValor, // Se envía el estado de disponibilidad del transporte.
-        ]);
+        ], $MiConexion);
         $success = true; // Se activa la bandera para mostrar el mensaje de éxito.
         $marcaId = $modelo = $anio = $patente = ''; // Se limpian los campos para evitar que queden valores previos en el formulario.
         $disponible = true; // Se restablece el checkbox como seleccionado luego de guardar.
