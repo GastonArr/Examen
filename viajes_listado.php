@@ -56,7 +56,9 @@ require_once __DIR__ . '/includes/sidebar.php';
                             <?php else: ?>
                                 <?php foreach ($viajes as $index => $viaje): ?>
                                     <?php
-                                    $montoChofer = CalcularMontoChofer((float) $viaje['costo'], (int) $viaje['porcentaje_chofer']);
+                                    $montoChofer = isset($viaje['monto_chofer'])
+                                        ? (float) $viaje['monto_chofer']
+                                        : CalcularMontoChofer((float) $viaje['costo'], (int) $viaje['porcentaje_chofer']);
                                     $filaClase = ObtenerClaseFila($viaje['fecha_programada']);
                                     ?>
                                     <tr class="<?php echo $filaClase; ?>">

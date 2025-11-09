@@ -424,6 +424,7 @@ function Listar_Viajes($ChoferId = null, $vConexion = null)
             $Listado[$i]['destino'] = $data['destino'];
             $Listado[$i]['costo'] = $data['costo'];
             $Listado[$i]['porcentaje_chofer'] = $data['porcentaje_chofer'];
+            $Listado[$i]['monto_chofer'] = CalcularMontoChofer((float) $data['costo'], (int) $data['porcentaje_chofer']);
             $Listado[$i]['chofer_apellido'] = $data['chofer_apellido'];
             $Listado[$i]['chofer_nombre'] = $data['chofer_nombre'];
             $Listado[$i]['chofer_dni'] = $data['chofer_dni'];
