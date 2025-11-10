@@ -7,108 +7,73 @@ if (!EsAdministrador()) { // Se verifica que solamente los administradores pueda
     Redireccionar('index.php'); // Si el usuario no es administrador se lo redirige al panel principal para impedir el acceso.
 }
 
+function ValidarDatosChofer()
+{
+    $Mensaje = '';
+
+    if (strlen($_POST['apellido']) < 3) {
+        $Mensaje .= 'Debes ingresar un apellido con al menos 3 caracteres. <br />';
+    }
+
+    if (strlen($_POST['nombre']) < 3) {
+        $Mensaje .= 'Debes ingresar un nombre con al menos 3 caracteres. <br />';
+    }
+
+    if (strlen($_POST['dni']) < 7) {
+        $Mensaje .= 'Debes ingresar un DNI con al menos 7 caracteres. <br />';
+    }
+
+    if (strlen($_POST['usuario']) < 4) {
+        $Mensaje .= 'Debes ingresar un usuario con al menos 4 caracteres. <br />';
+    }
+
+    if (strlen($_POST['clave']) == 0) {
+        $Mensaje .= 'Debes ingresar la clave. <br />';
+    }
+
+    foreach ($_POST as $Id => $Valor) {
+        $_POST[$Id] = trim($_POST[$Id]);
+        $_POST[$Id] = strip_tags($_POST[$Id]);
+    }
+
+    return $Mensaje;
+}
+
 $MiConexion = ConexionBD();
 
 $pageTitle = 'Registrar un nuevo chofer';
 $activePage = 'choferes';
 
-$errors = array();
-$success = false;
-$successData = null; // Se inicializa la variable que almacenará los datos del registro exitoso para mostrarlos en pantalla.
+$mensaje = '';
+$estilo = '';
 $apellido = '';
 $nombre = '';
 $dni = '';
 $usuarioForm = '';
-$claveForm = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['apellido'])) {
-        $apellido = trim($_POST['apellido']);
+    $mensaje = ValidarDatosChofer();
+
+    if (!empty($mensaje)) {
+        $estilo = 'warning';
+        $apellido = isset($_POST['apellido']) ? $_POST['apellido'] : '';
+        $nombre = isset($_POST['nombre']) ? $_POST['nombre'] : '';
+        $dni = isset($_POST['dni']) ? $_POST['dni'] : '';
+        $usuarioForm = isset($_POST['usuario']) ? $_POST['usuario'] : '';
     } else {
-        $apellido = '';
-    }
-
-    if (isset($_POST['nombre'])) {
-        $nombre = trim($_POST['nombre']);
-    } else {
-        $nombre = '';
-    }
-
-    if (isset($_POST['dni'])) {
-        $dni = trim($_POST['dni']);
-    } else {
-        $dni = '';
-    }
-
-    if (isset($_POST['usuario'])) {
-        $usuarioForm = strtolower(trim($_POST['usuario']));
-    } else {
-        $usuarioForm = '';
-    }
-
-    if (isset($_POST['clave'])) {
-        $claveForm = trim($_POST['clave']);
-    } else {
-        $claveForm = '';
-    }
-
-    if (!CampoRequerido($apellido)) {
-        $errors[] = 'El apellido es obligatorio.';
-    }
-
-    if (!CampoRequerido($nombre)) {
-        $errors[] = 'El nombre es obligatorio.';
-    }
-
-    if (!CampoRequerido($dni)) {
-        $errors[] = 'El DNI es obligatorio.';
-    } elseif (!ValidarDNI($dni)) {
-        $errors[] = 'El DNI debe tener 7 u 8 dígitos numéricos.';
-    } elseif (ExisteDNI($dni, $MiConexion)) {
-        $errors[] = 'El DNI ingresado ya se encuentra registrado.';
-    }
-
-    if (!CampoRequerido($usuarioForm)) {
-        $errors[] = 'El usuario es obligatorio.';
-    } elseif (strlen($usuarioForm) < 3) {
-        $errors[] = 'El usuario debe tener al menos 3 caracteres.';
-    } else {
-        $permitidos = '._-';
-        $usuarioValido = true;
-        for ($i = 0; $i < strlen($usuarioForm); $i++) {
-            $caracter = $usuarioForm[$i];
-            if (!ctype_alnum($caracter) && strpos($permitidos, $caracter) === false) {
-                $usuarioValido = false;
-                break;
-            }
-        }
-
-        if (!$usuarioValido) {
-            $errors[] = 'El usuario solo puede incluir letras, números, puntos, guiones o guiones bajos.';
-        }
-    }
-
-    if (!$errors && ExisteUsuario($usuarioForm, $MiConexion)) {
-        $errors[] = 'El usuario ingresado ya existe.';
-    }
-
-    if (!CampoRequerido($claveForm)) {
-        $errors[] = 'La clave es obligatoria.';
-    } elseif (strlen($claveForm) < 5) {
-        $errors[] = 'La clave debe tener al menos 5 caracteres.';
-    }
-
-    if (!$errors) {
-        $resultado = Insertar_Chofer(array( // Se llama a la función que inserta el chofer y devuelve información complementaria.
-            'apellido' => $apellido, // Se envía el apellido ya validado.
-            'nombre' => $nombre, // Se envía el nombre proporcionado.
-            'dni' => $dni, // Se envía el DNI confirmado como único.
-            'usuario' => $usuarioForm, // Se envía el usuario validado.
-            'clave' => $claveForm, // Se envía la clave validada.
+        $resultado = Insertar_Chofer(array(
+            'apellido' => $_POST['apellido'],
+            'nombre' => $_POST['nombre'],
+            'dni' => $_POST['dni'],
+            'usuario' => $_POST['usuario'],
+            'clave' => $_POST['clave'],
         ), $MiConexion);
-        $success = true; // Se marca el registro como exitoso para mostrar el mensaje correspondiente.
-        $successData = $resultado; // Se almacenan los datos retornados (usuario y clave final) para comunicarlos al administrador.
-        $apellido = $nombre = $dni = $usuarioForm = $claveForm = '';
+
+        if ($resultado != false) {
+            $mensaje = 'Los datos se guardaron correctamente.';
+            $estilo = 'success';
+            $apellido = $nombre = $dni = $usuarioForm = '';
+        }
     }
 }
 
@@ -136,19 +101,9 @@ require_once 'includes/sidebar.php';
                         <div class="alert alert-info" role="alert">
                             <i class="bi bi-info-circle me-1"></i> Los campos indicados con (*) son requeridos
                         </div>
-                        <?php if ($errors): ?>
-                            <div class="alert alert-warning" role="alert">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                <ul class="mb-0">
-                                    <?php foreach ($errors as $error): ?>
-                                        <li><?php echo htmlspecialchars($error); ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($success): ?>
-                            <div class="alert alert-success" role="alert">
-                                <i class="bi bi-check-circle me-1"></i> ¡Los datos se guardaron correctamente!
+                        <?php if (!empty($mensaje)): ?>
+                            <div class="alert alert-<?php echo htmlspecialchars($estilo); ?>" role="alert">
+                                <?php echo $mensaje; ?>
                             </div>
                         <?php endif; ?>
                         <form class="row g-3" method="post" action="" novalidate>

@@ -7,7 +7,5 @@ function ConexionBD($Host = 'localhost', $User = 'root', $Password = '', $BaseDe
         die('No se pudo establecer la conexión.');
     }
 
-    mysqli_set_charset($linkConexion, 'utf8');
-
     return $linkConexion;
 }
